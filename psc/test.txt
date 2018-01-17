@@ -1,0 +1,49 @@
+✓ Will be opening deposit and full has closed deposit cooperative (1497ms)                                            
+	gas consumption:
+	token.approve:                                                                                            45342 45342 45342
+	psc.addBalanceERC20:                                                                                      49002 49002 49002
+	psc.registerServiceOffering:                                                                              94449 94449 94449
+	psc.createChannel:                                                                                        78038 78038 78038
+	psc.cooperativeClose:                                                                                     76607 76688 76688
+	psc.returnBalanceERC20:                                                                                   43085 43085 43085
+✓ Trying closing channel again must get error (1799ms)                                                                
+	gas consumption:                                                                                                      
+	token.approve:                                                                                            45342 45278 45342
+	psc.addBalanceERC20:                                                                                      49002 49002 49002
+	psc.registerServiceOffering:                                                                              94449 94449 94449
+	psc.createChannel:                                                                                        78038 78038 78038
+	psc.cooperativeClose:                                                                                     76543 76543 76543
+	psc.returnBalanceERC20:                                                                                   43085 43085 43085
+✓ Trying closing channel with amount of balance signature more of balance must get error. (730ms)                     
+	gas consumption:                                                                                                      
+	token.approve:                                                                                            45342 45342 45342
+	psc.addBalanceERC20:                                                                                      49002 49002 49002
+	psc.registerServiceOffering:                                                                              94449 94449 94449
+	psc.createChannel:                                                                                        78038 78038 78038
+✓ Trying closing channel with error of balance signature or closing signature must get error. (1735ms)                
+	gas consumption:                                                                                                      
+	token.approve:                                                                                            45342 45342 45342
+	psc.addBalanceERC20:                                                                                      49002 49002 49002
+	psc.registerServiceOffering:                                                                              94449 94449 94449
+	psc.createChannel:                                                                                        78038 78038 78038
+✓ Closing channel by uncooperative of sender (30566ms)                                                                
+	gas consumption:                                                                                                      
+	token.approve:                                                                                            45342 45342 45342
+	psc.addBalanceERC20:                                                                                      49002 49002 49002
+	psc.registerServiceOffering:                                                                              94449 94449 94449
+	psc.createChannel:                                                                                        78038 78038 78038
+	psc.uncooperativeClose:                                                                                   56552 56552 56552
+	psc.settle:                                                                                               42782 42782 42782
+	psc.returnBalanceERC20:                                                                                   43085 43085 43085
+✓ measuring gas consumption for other members: (3754ms)                                                               
+	gas consumption:                                                                                                      
+	psc.topUp:                                                                                                41640 41640 41640
+	psc.getChannelInfo:                                                                                       29005 29005 29005
+	psc.publishServiceOfferingEndpoint:                                                                       30199 30199 30199
+	psc.popupServiceOffering:                                                                                 31859 31859 31859
+	psc.extractBalanceProofSignature:                                                                         36222 36303 36222
+	psc.extractClosingSignature:                                                                              36303 36303 36239
+	psc.getKey:                                                                                               27271 27271 27271
+	psc.removeServiceOffering:                                                                                38372 38372 38372
+
+
