@@ -17,7 +17,7 @@ contract Micropay {
     // in order to give the receiver a chance to respond with a balance proof
     // in case the sender cheats. After the challenge period, the sender can settle
     // and delete the channel.
-    uint32 public constant challenge_period = 500;
+    uint32 public constant challenge_period = 3;
 
     // 24 bytes (deposit) + 4 bytes (block number)
     struct Channel {

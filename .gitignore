@@ -1,0 +1,10 @@
+.DS_Store
+build
+dis
+dist
+*/node_modules
+node_modules
+key.pem
+*.swp
+*/package-lock.json
+package-lock.json
