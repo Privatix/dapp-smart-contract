@@ -50,10 +50,12 @@ contract('PSC', (accounts) => {
     });
 
     afterEach(function () {
-        mlog.log("\tgas consumption:");
-        for(var method in gasUsage){
-            mlog.log("\t" + method + ": " + gasUsage[method]);
-            delete gasUsage[method];
+        if(Object.keys(gasUsage).length){
+            mlog.log("\tgas consumption:");
+            for(var method in gasUsage){
+                mlog.log("\t" + method + ": " + gasUsage[method]);
+                delete gasUsage[method];
+            }
         }
     });
 
@@ -432,5 +434,15 @@ contract('PSC', (accounts) => {
 
         gasUsage["psc.removeServiceOffering"] = await psc.removeServiceOffering.estimateGas(offering_hash, {from:vendor});
  
+    });
+
+    it('trying to send money directly to contract (should throw exception)', async () => {
+        const balanceBefore = await web3.eth.getBalance(psc.address);
+        await shouldHaveException(async () => {
+            await web3.eth.sendTransaction({from: owner, to: psc.address, value: 1000});
+        }, "Should has an error");
+        const balanceAfter = await web3.eth.getBalance(psc.address);
+
+        assert.equal(balanceBefore.eq(balanceAfter), true, 'balance must be not changed');
     });
 });
