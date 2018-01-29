@@ -164,8 +164,19 @@ contract PrivatixServiceContract is Ownable {
     /// @notice Returns tokens from internal balance to PTC ERC20 token.
     /// @param _value Token amount to return.
     function returnBalanceERC20(uint192 _value) external {
-      internal_balances[msg.sender] = internal_balances[msg.sender] - _value;
+      internal_balances[msg.sender] = internal_balances[msg.sender].sub(_value);
       require(token.transfer(msg.sender, _value));
+    }
+
+    /// @notice Function for retrieving information about a internal balance.
+    /// @return Internal balance information (deposit).
+    // MUST be removed before deploing (for test purposes only)
+    function getBalanceInfo()
+        external
+        view
+        returns (uint256)
+    {
+        return (internal_balances[msg.sender]);
     }
 
     /// @notice Creates a new channel between `msg.sender` (Client) and Agent and places
@@ -175,13 +186,12 @@ contract PrivatixServiceContract is Ownable {
     /// @param _deposit The amount of tokens that the Client escrows.
     /// @param _authentication_hash Hash of authentication message, which is delivered off-chain.
     function createChannel(address _agent_address, bytes32 _offering_hash, uint192 _deposit, bytes32 _authentication_hash) external {
-        require(_deposit >= service_offering_s[_offering_hash].min_deposit);
-        require(internal_balances[msg.sender] >= _deposit);
+        require(_deposit >= service_offering_s[_offering_hash].min_deposit); // test S4
+        require(internal_balances[msg.sender] >= _deposit); // test S5
 
         decreaseOfferingSupply(_agent_address, _offering_hash);
         createChannelPrivate(msg.sender, _agent_address, _offering_hash, _deposit);
-        // internal_balances[msg.sender] = internal_balances[msg.sender].sub(_deposit);
-        internal_balances[msg.sender] = internal_balances[msg.sender] - _deposit;
+        internal_balances[msg.sender] = internal_balances[msg.sender].sub(_deposit); //test S5
         LogChannelCreated(msg.sender, _agent_address, _offering_hash, _deposit, _authentication_hash);
     }
 
@@ -232,7 +242,7 @@ contract PrivatixServiceContract is Ownable {
 
         // Derive Agent address from closing signature
         address receiver = extractClosingSignature(sender, _open_block_number, _offering_hash, _balance, _closing_sig);
-        require(receiver == _agent_address);
+        require(receiver == _agent_address); // test S6
 
         // Both signatures have been verified and the channel can be settled.
         settleChannel(sender, receiver, _open_block_number, _offering_hash, _balance);
@@ -255,9 +265,9 @@ contract PrivatixServiceContract is Ownable {
     {
         bytes32 key = getKey(msg.sender, _agent_address, _open_block_number, _offering_hash);
 
-        require(channels[key].open_block_number > 0);
-        require(closing_requests[key].settle_block_number == 0);
-        require(_balance <= channels[key].deposit);
+        require(channels[key].open_block_number > 0); // test S9
+        require(closing_requests[key].settle_block_number == 0); // test S10
+        require(_balance <= channels[key].deposit); // test S11
 
         // Mark channel as closed
         closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
@@ -278,10 +288,10 @@ contract PrivatixServiceContract is Ownable {
         bytes32 key = getKey(msg.sender, _agent_address, _open_block_number, _offering_hash);
 
         // Make sure an uncooperativeClose has been initiated
-        require(closing_requests[key].settle_block_number > 0);
+        require(closing_requests[key].settle_block_number > 0); // test S7
 
         // Make sure the challenge_period has ended
-	    require(block.number > closing_requests[key].settle_block_number);
+	    require(block.number > closing_requests[key].settle_block_number); // test S8
 
         settleChannel(msg.sender, _agent_address, _open_block_number, _offering_hash,
            closing_requests[key].closing_balance
@@ -327,7 +337,7 @@ contract PrivatixServiceContract is Ownable {
     /// @param _endpoint_hash Hash of endpoint message delivered off-chain.
     function publishServiceOfferingEndpoint(address _client_address, bytes32 _offering_hash, uint32 _open_block_number, bytes32 _endpoint_hash) external
     {
-      require(service_offering_s[_offering_hash].agent_address == msg.sender);
+      require(service_offering_s[_offering_hash].agent_address == msg.sender); // test S12
       LogServiceOfferingEndpoint(_client_address, _offering_hash, _open_block_number, _endpoint_hash);
     }
 
@@ -348,9 +358,9 @@ contract PrivatixServiceContract is Ownable {
      public
      returns(bool success)
     {
-      require(service_offering_s[_offering_hash].update_block_number == 0); // Service offering already exists
-      require(_min_deposit*_max_supply < channel_deposit_bugbounty_limit); //Agent deposit greater than max allowed @@ to check overflow
-      require(_min_deposit > 0); // zero deposit is not allowed
+      require(service_offering_s[_offering_hash].update_block_number == 0); // Service offering already exists, test S2
+      require(_min_deposit.mul(_max_supply) < channel_deposit_bugbounty_limit); //Agent deposit greater than max allowed @@ to check overflow, test S1
+      require(_min_deposit > 0); // zero deposit is not allowed, test S3
 
       service_offering_s[_offering_hash].agent_address = msg.sender;
       service_offering_s[_offering_hash].min_deposit = _min_deposit;
@@ -375,11 +385,11 @@ contract PrivatixServiceContract is Ownable {
      public
      returns(bool success)
     {
-      require(service_offering_s[_offering_hash].isActive);
+      require(service_offering_s[_offering_hash].isActive); // test S13
       // only creator can delete his offering
-      assert(service_offering_s[_offering_hash].agent_address == msg.sender);
+      assert(service_offering_s[_offering_hash].agent_address == msg.sender); // test S14
       // At leasted challenge_period blocks were mined after last offering structure update
-      require(service_offering_s[_offering_hash].update_block_number + challenge_period > block.number);
+      require(service_offering_s[_offering_hash].update_block_number + challenge_period < block.number); // test S15
       // return Agent's deposit back to his internal balance @@ to check overflow
       internal_balances[msg.sender] = internal_balances[msg.sender].add(
         service_offering_s[_offering_hash].min_deposit * service_offering_s[_offering_hash].max_supply
@@ -399,8 +409,8 @@ contract PrivatixServiceContract is Ownable {
     /// @return True on sucess
     function popupServiceOffering (bytes32 _offering_hash) public returns(bool success)
     {
-      require(service_offering_s[_offering_hash].update_block_number > 0); // Service offering already exists
-      require(service_offering_s[_offering_hash].agent_address == msg.sender);
+      require(service_offering_s[_offering_hash].update_block_number > 0); // Service offering already exists, test S16
+      require(service_offering_s[_offering_hash].agent_address == msg.sender); // test S17
       require(block.number > service_offering_s[_offering_hash].update_block_number);
 
       service_offering_s[_offering_hash].update_block_number = uint32(block.number);

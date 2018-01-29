@@ -153,13 +153,256 @@ contract('PSC', (accounts) => {
         gasUsage["psc.cooperativeClose"] = cClose.receipt.gasUsed;
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
-        var ret = await psc.returnBalanceERC20(1e8+20, {from:vendor});
+        console.log((await psc.getBalanceInfo({from: vendor})).toString(10));
+        var ret = await psc.returnBalanceERC20(10, {from:vendor});
+        console.log((await psc.getBalanceInfo({from: vendor})).toString(10));
         gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
 
-        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 5e8+20, 'balance of sender must be 5e8+20');
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+10, 'balance of sender must be 5e8+20');
  
     });
 
+    it("S1: check if provider try to publish offering with overflow in _min_deposit * _max_supply", async () => {
+        // console.log(web3);
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        // (2^255+1)*2 mod(2^256) == 2
+        const min_deposit = web3.toBigNumber('0x8000000000000000000000000000000000000000000000000000000000000001');
+        await shouldHaveException(async () => {
+            await psc.registerServiceOffering(offering_hash, min_deposit, 2, {from:vendor});
+        }, "Should has an error");
+ 
+    });
+
+    it("S2: check if provider try to publish offering twice", async () => {
+        // console.log(web3);
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        // (1e255+1)*2 mod(1e256) == 2
+        // const min_deposit = web3.toBigNumber('0x8000000000000000000000000000000000000000000000000000000000000001');
+        // console.log(min_deposit);
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        // var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        await shouldHaveException(async () => {
+            await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        }, "Should has an error");
+ 
+    });
+
+    it("S3: check if provider try to publish offering with zero min_deposit", async () => {
+        // console.log(web3);
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        await shouldHaveException(async () => {
+            await psc.registerServiceOffering(offering_hash, 0, 2, {from:vendor});
+        }, "Should has an error");
+ 
+    });
+
+    it("S4: check if client try to create channel with insufficient deposit value", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        await shouldHaveException(async () => {
+            await psc.createChannel(vendor, offering_hash, 19, authentication_hash, {from:client});
+        }, "Should has an error");
+
+    });
+
+    it("S5: check if client try to create channel with insufficient internal balance", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(20, {from:client});
+        // TODO check balance
+        gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        await shouldHaveException(async () => {
+            await psc.createChannel(vendor, offering_hash, 21, authentication_hash, {from:client});
+        }, "Should has an error");
+
+    });
+
+    it("S6: check if try to close channel without signing the agent", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+        var sum = 10;
+        //balance signature
+        var message_hash = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var balance_signature = web3.eth.sign(client, message_hash);
+
+        //Close signature
+        var message_hash = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var close_signature = web3.eth.sign(client, message_hash);
+
+        await shouldHaveException(async () => {
+            await psc.cooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, balance_signature, close_signature, {from: vendor});
+        }, "Should has an error");
+
+    });
+
+    it("S7: check if try to .settle() channel without unCooperativeClose call", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+        var sum = 10;
+        //balance signature
+        var message_hash = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var balance_signature = web3.eth.sign(client, message_hash);
+
+        //Close signature
+        var message_hash = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var close_signature = web3.eth.sign(vendor, message_hash);
+
+//        var uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
+//        gasUsage["psc.uncooperativeClose"] = uClose.receipt.gasUsed;
+
+        // skip blocks
+        await prix_token.approve(psc.address, 1e8,{from:owner});
+        for(var i = 0; i < challenge_period; i++) await psc.addBalanceERC20(10, {from:owner});
+
+        await shouldHaveException(async () => {
+            await psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+        }, "Should has an error");
+ 
+    });
+
+    it("S8: check if try to .settle() channel before the expiry of the challenge_period", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+        var sum = 10;
+        //balance signature
+        var message_hash = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var balance_signature = web3.eth.sign(client, message_hash);
+
+        //Close signature
+        var message_hash = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var close_signature = web3.eth.sign(vendor, message_hash);
+
+        var uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
+        gasUsage["psc.uncooperativeClose"] = uClose.receipt.gasUsed;
+        console.log(uClose.receipt.blockNumber);
+
+        // skip blocks
+        await prix_token.approve(psc.address, 1e8,{from:owner});
+        var finalBlock;
+        for(var i = 0; i < challenge_period-2; i++) finalBlock = await psc.addBalanceERC20(10, {from:owner});
+        console.log(finalBlock.receipt.blockNumber);
+
+        await shouldHaveException(async () => {
+            await psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+        }, "Should has an error");
+ 
+    });
 
     it('Trying closing channel again must get error', async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
@@ -198,10 +441,10 @@ contract('PSC', (accounts) => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
 
-        var ret = await psc.returnBalanceERC20(1e8+20, {from:vendor});
+        var ret = await psc.returnBalanceERC20(20, {from:vendor});
         gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
 
-        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 5e8+20, 'balance of sender must be 5e8+20');
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of sender must be 4e8+20');
 
         await shouldHaveException(async () => {
             await psc.cooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, balance_signature, close_signature, {from: vendor});
@@ -366,11 +609,129 @@ contract('PSC', (accounts) => {
 
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
-        var ret = await psc.returnBalanceERC20(1e8+20, {from:vendor});
+        var ret = await psc.returnBalanceERC20(20, {from:vendor});
         gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
 
-        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 5e8+20, 'balance of sender must be 5e8+20');
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of sender must be 4e8+20');
  
+    });
+
+    it('S9: uncooperative close, trying to close not exist channel', async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+        var not_exist_hash = "0x" + abi.soliditySHA3(['string'],['ups']).toString('hex');
+
+        var sum = 10;
+        //balance signature
+        var message_hash = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var balance_signature = web3.eth.sign(client, message_hash);
+
+        //Close signature
+        var message_hash = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var close_signature = web3.eth.sign(vendor, message_hash);
+
+        await shouldHaveException(async () => {
+            await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, not_exist_hash, sum, {from: client});
+        }, "Should has an error");
+
+    });
+
+    it('S10: uncooperative close, try to close channel twice', async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+        var sum = 10;
+        //balance signature
+        var message_hash = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var balance_signature = web3.eth.sign(client, message_hash);
+
+        //Close signature
+        var message_hash = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var close_signature = web3.eth.sign(vendor, message_hash);
+
+        var uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
+        gasUsage["psc.uncooperativeClose"] = uClose.receipt.gasUsed;
+
+        await shouldHaveException(async () => {
+            await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
+        }, "Should has an error");
+ 
+    });
+
+    it('S11: uncooperative close, try to close with insufficient internal balance', async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 1e8, authentication_hash, {from:client});
+        gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+        var sum = 10;
+        //balance signature
+        var message_hash = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var balance_signature = web3.eth.sign(client, message_hash);
+
+        //Close signature
+        var message_hash = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var close_signature = web3.eth.sign(vendor, message_hash);
+
+        await shouldHaveException(async () => {
+            await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, 1e8+1, {from: client});
+        }, "Should has an error");
     });
 
     it("measuring gas consumption for other members:", async () => {
@@ -418,14 +779,14 @@ contract('PSC', (accounts) => {
         // gasUsage["psc.cooperativeClose"] = cClose.receipt.gasUsed;
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
-        var ret = await psc.returnBalanceERC20(1e8+20, {from:vendor});
+        var ret = await psc.returnBalanceERC20(20, {from:vendor});
         // gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
 
-        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 5e8+20, 'balance of sender must be 5e8+20');
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of sender must be 4e8+20');
 
         // etc
         await prix_token.approve(psc.address, 1e8,{from:owner});
-        for(var i = 0; i < 50; i++) await psc.addBalanceERC20(10, {from:owner});
+        for(var i = 0; i < challenge_period; i++) await psc.addBalanceERC20(10, {from:owner});
 
         gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, {from:vendor});
         gasUsage["psc.extractBalanceProofSignature"] = await psc.extractBalanceProofSignature.estimateGas(vendor, channel.receipt.blockNumber, offering_hash, sum, balance_signature, {from:vendor});
@@ -433,6 +794,277 @@ contract('PSC', (accounts) => {
         gasUsage["psc.getKey"] = await psc.getKey.estimateGas(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
 
         gasUsage["psc.removeServiceOffering"] = await psc.removeServiceOffering.estimateGas(offering_hash, {from:vendor});
+ 
+    });
+
+    it("S12: try to publish endpoint from someone else's name", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        // gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        // gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+        //
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        // gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        // gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        // gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        // gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+        await shouldHaveException(async () => {
+            await psc.publishServiceOfferingEndpoint(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:owner});
+        }, "Should has an error");
+
+    });
+
+    it("S13: try to remove unexist offering", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        // gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        // gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+        //
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        // gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        // gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        // gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
+        var ret = await psc.returnBalanceERC20(20, {from:vendor});
+        // gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of sender must be 4e8+20');
+
+        var unexist_offering_hash = "0x" + abi.soliditySHA3(['string'],['ups']).toString('hex');
+        await shouldHaveException(async () => {
+            await psc.removeServiceOffering(unexist_offering_hash, {from:vendor});
+        }, "Should has an error");
+ 
+    });
+
+    it("S14: try to remove offering from someone else's name", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        // gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        // gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+        //
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        // gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        // gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        // gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
+        var ret = await psc.returnBalanceERC20(20, {from:vendor});
+        // gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of sender must be 4e8+20');
+
+        await shouldHaveException(async () => {
+            await psc.removeServiceOffering(offering_hash, {from:client});
+        }, "Should has an error");
+ 
+    });
+
+    it("S15: try to remove offering before the expiry of the challenge_period", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        // gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        // gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+        //
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        // gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        // gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        // gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        // gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+
+        var sum = 10;
+        //balance signature
+        var message_hash = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var balance_signature = web3.eth.sign(client, message_hash);
+
+        //Close signature
+        var message_hash = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var close_signature = web3.eth.sign(vendor, message_hash);
+
+        var cClose = await psc.cooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, balance_signature, close_signature, {from: vendor});
+        // gasUsage["psc.cooperativeClose"] = cClose.receipt.gasUsed;
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
+        var ret = await psc.returnBalanceERC20(20, {from:vendor});
+        // gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of sender must be 4e8+20');
+
+        await shouldHaveException(async () => {
+            await psc.removeServiceOffering(offering_hash, {from:vendor});
+        }, "Should has an error");
+        // etc
+        await prix_token.approve(psc.address, 1e8,{from:owner});
+        for(var i = 0; i < challenge_period; i++) await psc.addBalanceERC20(10, {from:owner});
+        // now should be ok
+        await psc.removeServiceOffering(offering_hash, {from:vendor});
+
+ 
+    });
+
+    it("S16: try to popup unexist offering", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        // gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        // gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+        //
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        // gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        // gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        // gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        // gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+        var topUp = await psc.topUpChannel(vendor, channel.receipt.blockNumber, offering_hash, 10, {from:client});
+        gasUsage["psc.topUp"] = topUp.receipt.gasUsed;
+
+        var channelInfo = await psc.getChannelInfo(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+        gasUsage["psc.getChannelInfo"] = await psc.getChannelInfo.estimateGas(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+
+        var publishServiceOfferingEndpoint = await psc.publishServiceOfferingEndpoint(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor});
+        gasUsage["psc.publishServiceOfferingEndpoint"] =  await psc.publishServiceOfferingEndpoint.estimateGas(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor});
+
+        var sum = 10;
+        //balance signature
+        var message_hash = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var balance_signature = web3.eth.sign(client, message_hash);
+
+        //Close signature
+        var message_hash = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var close_signature = web3.eth.sign(vendor, message_hash);
+
+        var cClose = await psc.cooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, balance_signature, close_signature, {from: vendor});
+        // gasUsage["psc.cooperativeClose"] = cClose.receipt.gasUsed;
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
+        var ret = await psc.returnBalanceERC20(20, {from:vendor});
+        // gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of sender must be 4e8+20');
+
+        await prix_token.approve(psc.address, 1e8,{from:owner});
+        for(var i = 0; i < challenge_period; i++) await psc.addBalanceERC20(10, {from:owner});
+
+        var unexist_offering_hash = "0x" + abi.soliditySHA3(['string'],['ups']).toString('hex');
+        await shouldHaveException(async () => {
+            await psc.popupServiceOffering(unexist_offering_hash, {from:vendor});
+        }, "Should has an error");
+ 
+    });
+
+    it("S17: try to popup from someone else's name", async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
+
+        var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        // gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        var block = await psc.addBalanceERC20(1e8, {from:vendor});
+        // gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+        //
+        var offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        var offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        // gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        var ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        // gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        var ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        // gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        var authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        var channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        // gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+        var topUp = await psc.topUpChannel(vendor, channel.receipt.blockNumber, offering_hash, 10, {from:client});
+        gasUsage["psc.topUp"] = topUp.receipt.gasUsed;
+
+        var channelInfo = await psc.getChannelInfo(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+        gasUsage["psc.getChannelInfo"] = await psc.getChannelInfo.estimateGas(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+
+        var publishServiceOfferingEndpoint = await psc.publishServiceOfferingEndpoint(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor});
+        gasUsage["psc.publishServiceOfferingEndpoint"] =  await psc.publishServiceOfferingEndpoint.estimateGas(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor});
+
+        var sum = 10;
+        //balance signature
+        var message_hash = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var balance_signature = web3.eth.sign(client, message_hash);
+
+        //Close signature
+        var message_hash = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        var close_signature = web3.eth.sign(vendor, message_hash);
+
+        var cClose = await psc.cooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, balance_signature, close_signature, {from: vendor});
+        // gasUsage["psc.cooperativeClose"] = cClose.receipt.gasUsed;
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
+        var ret = await psc.returnBalanceERC20(20, {from:vendor});
+        // gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of sender must be 4e8+20');
+
+        await prix_token.approve(psc.address, 1e8,{from:owner});
+        for(var i = 0; i < challenge_period; i++) await psc.addBalanceERC20(10, {from:owner});
+
+        await shouldHaveException(async () => {
+            await psc.popupServiceOffering(offering_hash, {from:client});
+        }, "Should has an error");
  
     });
 
@@ -445,4 +1077,6 @@ contract('PSC', (accounts) => {
 
         assert.equal(balanceBefore.eq(balanceAfter), true, 'balance must be not changed');
     });
+
+
 });
