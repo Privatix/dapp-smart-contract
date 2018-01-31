@@ -153,9 +153,7 @@ contract('PSC', (accounts) => {
         gasUsage["psc.cooperativeClose"] = cClose.receipt.gasUsed;
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
-        console.log((await psc.getBalanceInfo({from: vendor})).toString(10));
         var ret = await psc.returnBalanceERC20(10, {from:vendor});
-        console.log((await psc.getBalanceInfo({from: vendor})).toString(10));
         gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+10, 'balance of sender must be 5e8+20');
@@ -390,13 +388,11 @@ contract('PSC', (accounts) => {
 
         var uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
         gasUsage["psc.uncooperativeClose"] = uClose.receipt.gasUsed;
-        console.log(uClose.receipt.blockNumber);
 
         // skip blocks
         await prix_token.approve(psc.address, 1e8,{from:owner});
         var finalBlock;
         for(var i = 0; i < challenge_period-2; i++) finalBlock = await psc.addBalanceERC20(10, {from:owner});
-        console.log(finalBlock.receipt.blockNumber);
 
         await shouldHaveException(async () => {
             await psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
@@ -785,9 +781,10 @@ contract('PSC', (accounts) => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of sender must be 4e8+20');
 
         // etc
+        /*
         await prix_token.approve(psc.address, 1e8,{from:owner});
         for(var i = 0; i < challenge_period; i++) await psc.addBalanceERC20(10, {from:owner});
-
+*/
         gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, {from:vendor});
         gasUsage["psc.extractBalanceProofSignature"] = await psc.extractBalanceProofSignature.estimateGas(vendor, channel.receipt.blockNumber, offering_hash, sum, balance_signature, {from:vendor});
         gasUsage["psc.extractClosingSignature"] = await psc.extractBalanceProofSignature.estimateGas(client, channel.receipt.blockNumber, offering_hash, sum, close_signature, {from:client});
@@ -895,7 +892,7 @@ contract('PSC', (accounts) => {
  
     });
 
-    it("S15: try to remove offering before the expiry of the challenge_period", async () => {
+    it("S15: try to remove offering after the expiry of the challenge_period", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'before deposit balance of sender must be 5 prix');
 
         var approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
@@ -937,15 +934,13 @@ contract('PSC', (accounts) => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of sender must be 4e8+20');
 
-        await shouldHaveException(async () => {
-            await psc.removeServiceOffering(offering_hash, {from:vendor});
-        }, "Should has an error");
         // etc
         await prix_token.approve(psc.address, 1e8,{from:owner});
         for(var i = 0; i < challenge_period; i++) await psc.addBalanceERC20(10, {from:owner});
-        // now should be ok
-        await psc.removeServiceOffering(offering_hash, {from:vendor});
 
+        await shouldHaveException(async () => {
+            await psc.removeServiceOffering(offering_hash, {from:vendor});
+        }, "Should has an error");
  
     });
 

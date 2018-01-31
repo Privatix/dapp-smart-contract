@@ -168,17 +168,6 @@ contract PrivatixServiceContract is Ownable {
       require(token.transfer(msg.sender, _value));
     }
 
-    /// @notice Function for retrieving information about a internal balance.
-    /// @return Internal balance information (deposit).
-    // MUST be removed before deploing (for test purposes only)
-    function getBalanceInfo()
-        external
-        view
-        returns (uint256)
-    {
-        return (internal_balances[msg.sender]);
-    }
-
     /// @notice Creates a new channel between `msg.sender` (Client) and Agent and places
     /// the `_deposit` tokens from internal_balances to channel.
     /// @param _agent_address The address of Agent that receives tokens.
@@ -389,7 +378,7 @@ contract PrivatixServiceContract is Ownable {
       // only creator can delete his offering
       assert(service_offering_s[_offering_hash].agent_address == msg.sender); // test S14
       // At leasted challenge_period blocks were mined after last offering structure update
-      require(service_offering_s[_offering_hash].update_block_number + challenge_period < block.number); // test S15
+      require(service_offering_s[_offering_hash].update_block_number + challenge_period > block.number); // test S15
       // return Agent's deposit back to his internal balance @@ to check overflow
       internal_balances[msg.sender] = internal_balances[msg.sender].add(
         service_offering_s[_offering_hash].min_deposit * service_offering_s[_offering_hash].max_supply
