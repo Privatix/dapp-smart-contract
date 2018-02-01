@@ -231,7 +231,7 @@ contract PrivatixServiceContract is Ownable {
 
         // Derive Agent address from closing signature
         address receiver = extractClosingSignature(sender, _open_block_number, _offering_hash, _balance, _closing_sig);
-        require(receiver == _agent_address); // test S6
+        require(receiver == _agent_address); // tests S6, I1a-I1f
 
         // Both signatures have been verified and the channel can be settled.
         settleChannel(sender, receiver, _open_block_number, _offering_hash, _balance);
@@ -446,7 +446,7 @@ contract PrivatixServiceContract is Ownable {
                     'address contract'
                 ),
                 keccak256(
-                    'Sender balance proof signature',
+                    'Privatix: sender balance proof signature',
                     _agent_address,
                     _open_block_number,
                     _offering_hash,
@@ -498,7 +498,7 @@ contract PrivatixServiceContract is Ownable {
                     'address contract'
                 ),
                 keccak256(
-                    'Receiver closing signature',
+                    'Privatix: receiver closing signature',
                     _client_address,
                     _open_block_number,
                     _offering_hash,
