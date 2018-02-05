@@ -24,8 +24,8 @@ contract PrivatixServiceContract is Ownable {
     // Contract semantic version
     string public constant meta_version = '0.1.0';
 
-    uint32 public royalty;
-    address royalty_address;
+    uint32 public network_fee;
+    address network_fee_address;
 
     // We temporarily limit total token deposits in a channel to 300 PRIX.
     // This is just for the bug bounty release, as a safety measure.
@@ -136,12 +136,12 @@ contract PrivatixServiceContract is Ownable {
     /// after a sender requests the closing of the channel without the receiver's signature.
     function PrivatixServiceContract(
       address _token_address,
-      address _royalty_address,
+      address _network_fee_address,
       uint32 _challenge_period
       ) public {
         require(_token_address != 0x0);
         require(addressHasCode(_token_address));
-        require(_royalty_address != 0x0);
+        require(_network_fee_address != 0x0);
         require(_challenge_period >= 500);
 
         token = ERC20(_token_address);
@@ -149,7 +149,7 @@ contract PrivatixServiceContract is Ownable {
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0);
 
-        royalty_address = _royalty_address;
+        network_fee_address = _network_fee_address;
         challenge_period = _challenge_period;
 
     }
@@ -174,13 +174,13 @@ contract PrivatixServiceContract is Ownable {
       require(token.transfer(msg.sender, _value));
     }
 
-    function setRoyaltyAddress(address _royalty_address) external onlyOwner { // test S24
-        royalty_address = _royalty_address;
+    function setNetworkFeeAddress(address _network_fee_address) external onlyOwner { // test S24
+        network_fee_address = _network_fee_address;
     }
 
-    function setRoyalty(uint32 _royalty) external onlyOwner { // test S22
-        require(_royalty <= 100000); // test S23
-        royalty = _royalty;
+    function setNetworkFee(uint32 _network_fee) external onlyOwner { // test S22
+        require(_network_fee <= 100000); // test S23
+        network_fee = _network_fee;
     }
 
     /// @notice Creates a new channel between `msg.sender` (Client) and Agent and places
@@ -670,8 +670,8 @@ contract PrivatixServiceContract is Ownable {
 
         require(increaseOfferingSupply(_agent_address, _offering_hash));
         // Send _balance to the receiver, as it is always <= deposit
-        uint256 fee = (_balance/100000)*royalty; // it's safe because royalty can't be more than 100000
-        internal_balances[royalty_address] = internal_balances[royalty_address].add(fee);
+        uint256 fee = (_balance/100000)*network_fee; // it's safe because fee can't be more than 100000
+        internal_balances[network_fee_address] = internal_balances[network_fee_address].add(fee);
         internal_balances[_agent_address] = internal_balances[_agent_address].add(_balance-fee);
 
         // Send deposit - balance back to Client

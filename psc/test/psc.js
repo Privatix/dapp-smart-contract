@@ -109,7 +109,7 @@ contract('PSC', (accounts) => {
     }
 
 
-    it("I0a: cooperativeClose, standart use case, 0% royalty", async () => {
+    it("I0a: cooperativeClose, standart use case, 0% fee", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
@@ -150,12 +150,12 @@ contract('PSC', (accounts) => {
  
     });
 
-    it("I0b: cooperativeClose, standart use case, 0.57% royalty", async () => {
+    it("I0b: cooperativeClose, standart use case, 0.57% fee", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
         assert.equal((await prix_token.balanceOf(owner)).toNumber()/1e8, 5, 'balance of owner must be 5 prix');
 
-        const royalty = await psc.setRoyalty(570, {from: owner});
-        gasUsage["psc.setRoyalty"] = royalty.receipt.gasUsed;
+        const fee = await psc.setNetworkFee(570, {from: owner});
+        gasUsage["psc.setNetworkFee"] = fee.receipt.gasUsed;
 
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
         gasUsage["token.approve"] = approve.receipt.gasUsed;
@@ -188,7 +188,7 @@ contract('PSC', (accounts) => {
         gasUsage["psc.cooperativeClose"] = cClose.receipt.gasUsed;
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
-        // approve - min_deposit*max_supplies + signed balance - royalty
+        // approve - min_deposit*max_supplies + signed balance - fee
         assert.equal((await psc.internal_balances(vendor)).toNumber(), 1e8-2e6+100000-570, 'internal balance of vendor must be 4e8-2e6 + 100000-570 ');
         assert.equal((await psc.internal_balances(owner)).toNumber(), 570, 'internal balance of owner must be 570');
 
@@ -888,21 +888,21 @@ contract('PSC', (accounts) => {
 
     });
 
-    it("S22: check if stranger try to set royalty", async () => {
+    it("S22: check if stranger try to set fee", async () => {
 
-        chaiAssert.isRejected(psc.setRoyalty(5, {from: vendor}));
-
-    });
-
-    it("S23: check if royalty is more than 100% (100.000)", async () => {
-
-        chaiAssert.isRejected(psc.setRoyalty(100001, {from: owner}));
+        chaiAssert.isRejected(psc.setNetworkFee(5, {from: vendor}));
 
     });
 
-    it("S24: check if stranger try to set royalty address", async () => {
+    it("S23: check if fee is more than 100% (100.000)", async () => {
 
-        chaiAssert.isRejected(psc.setRoyaltyAddress(vendor, {from: vendor}));
+        chaiAssert.isRejected(psc.setNetworkFee(100001, {from: owner}));
+
+    });
+
+    it("S24: check if stranger try to set fee address", async () => {
+
+        chaiAssert.isRejected(psc.setNetworkFeeAddress(vendor, {from: vendor}));
 
     });
 
