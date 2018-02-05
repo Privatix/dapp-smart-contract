@@ -150,11 +150,11 @@ contract('PSC', (accounts) => {
  
     });
 
-    it("I0b: cooperativeClose, standart use case, 5% royalty", async () => {
+    it("I0b: cooperativeClose, standart use case, 0.57% royalty", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
         assert.equal((await prix_token.balanceOf(owner)).toNumber()/1e8, 5, 'balance of owner must be 5 prix');
 
-        const royalty = await psc.setRoyalty(5, {from: owner});
+        const royalty = await psc.setRoyalty(570, {from: owner});
         gasUsage["psc.setRoyalty"] = royalty.receipt.gasUsed;
 
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
@@ -164,7 +164,7 @@ contract('PSC', (accounts) => {
         gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 200, 10, {from:vendor});
+        const offering = await psc.registerServiceOffering(offering_hash, 200000, 10, {from:vendor});
         gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
 
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
@@ -174,10 +174,10 @@ contract('PSC', (accounts) => {
         gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
 
         const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 200, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 200000, authentication_hash, {from:client});
         gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
 
-        const sum = 100;
+        const sum = 100000;
         const balanceSig = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
         const signedBalanceSig = web3.eth.sign(client, balanceSig);
 
@@ -188,12 +188,17 @@ contract('PSC', (accounts) => {
         gasUsage["psc.cooperativeClose"] = cClose.receipt.gasUsed;
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
-        const ret = await psc.returnBalanceERC20(95, {from:vendor});
+        // approve - min_deposit*max_supplies + signed balance - royalty
+        assert.equal((await psc.internal_balances(vendor)).toNumber(), 1e8-2e6+100000-570, 'internal balance of vendor must be 4e8-2e6 + 100000-570 ');
+        assert.equal((await psc.internal_balances(owner)).toNumber(), 570, 'internal balance of owner must be 570');
+
+        const ret = await psc.returnBalanceERC20(100000-570, {from:vendor});
         gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
 
-        await psc.returnBalanceERC20(5, {from:owner});
-        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+95, 'balance of vendor must be 4e8+95');
-        assert.equal((await prix_token.balanceOf(owner)).toNumber(), 5e8+5, 'balance of owner must be 5e8+5');
+        await psc.returnBalanceERC20(570, {from:owner});
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+100000-570, 'balance of vendor must be 4e8+100000-570');
+        assert.equal((await prix_token.balanceOf(owner)).toNumber(), 5e8+570, 'balance of owner must be 5e8+570');
 
     });
 
@@ -889,9 +894,9 @@ contract('PSC', (accounts) => {
 
     });
 
-    it("S23: check if royalty is more than 100", async () => {
+    it("S23: check if royalty is more than 100% (100.000)", async () => {
 
-        chaiAssert.isRejected(psc.setRoyalty(101, {from: owner}));
+        chaiAssert.isRejected(psc.setRoyalty(100001, {from: owner}));
 
     });
 
@@ -900,4 +905,5 @@ contract('PSC', (accounts) => {
         chaiAssert.isRejected(psc.setRoyaltyAddress(vendor, {from: vendor}));
 
     });
+
 });

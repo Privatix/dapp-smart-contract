@@ -24,7 +24,7 @@ contract PrivatixServiceContract is Ownable {
     // Contract semantic version
     string public constant meta_version = '0.1.0';
 
-    uint8 royalty;
+    uint32 public royalty;
     address royalty_address;
 
     // We temporarily limit total token deposits in a channel to 300 PRIX.
@@ -178,8 +178,8 @@ contract PrivatixServiceContract is Ownable {
         royalty_address = _royalty_address;
     }
 
-    function setRoyalty(uint8 _royalty) external onlyOwner { // test S22
-        require(_royalty <= 100); // test S23
+    function setRoyalty(uint32 _royalty) external onlyOwner { // test S22
+        require(_royalty <= 100000); // test S23
         royalty = _royalty;
     }
 
@@ -670,7 +670,7 @@ contract PrivatixServiceContract is Ownable {
 
         require(increaseOfferingSupply(_agent_address, _offering_hash));
         // Send _balance to the receiver, as it is always <= deposit
-        uint256 fee = (_balance/100)*royalty;
+        uint256 fee = (_balance/100000)*royalty; // it's safe because royalty can't be more than 100000
         internal_balances[royalty_address] = internal_balances[royalty_address].add(fee);
         internal_balances[_agent_address] = internal_balances[_agent_address].add(_balance-fee);
 
