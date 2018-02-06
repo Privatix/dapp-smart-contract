@@ -40,12 +40,12 @@ contract PrivatixServiceContract is Ownable {
 
     // 32 bytes + 29 bytes
     struct ServiceOffering{
-      uint256 min_deposit;  // bytes32 - Minumum deposit that Client should place to open state channel. @@ generally uint192 should suffice
+      uint256 min_deposit;  // bytes32 - Minumum deposit that Client should place to open state channel.
       address agent_address; //bytes20 - Address of Agent.
       uint16 max_supply; // bytes2 - Maximum supply of services according to service offerings.
-      uint16 current_supply; // bytes2 - Currently remianing free capcity.
+      uint16 current_supply; // bytes2 - Currently remianing available supply.
       uint32 update_block_number; //bytes4 - Last block number when service offering was created, poped-up or channel opened.
-      bool isActive; // byte - Flag, shows SO is empty/created/deleted. @@ Bool occupy byte, isn't it?
+      bool isActive; // byte - Flag, shows SO is empty/created/deleted.
     }
 
     // 24 bytes (deposit) + 4 bytes (block number)
@@ -130,7 +130,7 @@ contract PrivatixServiceContract is Ownable {
      */
 
     /// @notice Constructor for creating the Privatix Service Contract.
-    /// @param _token_address The address of the Token used by the uRaiden contract.
+    /// @param _token_address The address of the PTC (Privatix Token Contract)
     /// @param _challenge_period A fixed number of blocks representing the challenge period.
     /// We enforce a minimum of 500 blocks waiting period.
     /// after a sender requests the closing of the channel without the receiver's signature.
@@ -179,7 +179,7 @@ contract PrivatixServiceContract is Ownable {
     }
 
     function setNetworkFee(uint32 _network_fee) external onlyOwner { // test S22
-        require(_network_fee <= 100000); // test S23
+        require(_network_fee <= 1000); // test S23
         network_fee = _network_fee;
     }
 
@@ -275,7 +275,7 @@ contract PrivatixServiceContract is Ownable {
 
         // Mark channel as closed
         closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
-        require(closing_requests[key].settle_block_number > block.number); // @@ Consider to use SafeMath instead
+        require(closing_requests[key].settle_block_number > block.number);
         closing_requests[key].closing_balance = _balance;
 
         LogChannelCloseRequested(msg.sender, _agent_address, _open_block_number, _offering_hash, _balance);
@@ -362,8 +362,8 @@ contract PrivatixServiceContract is Ownable {
      public
      returns(bool success)
     {
-      require(service_offering_s[_offering_hash].update_block_number == 0); // Service offering already exists, test S2
-      require(_min_deposit.mul(_max_supply) < channel_deposit_bugbounty_limit); //Agent deposit greater than max allowed @@ to check overflow, test S1
+      require(service_offering_s[_offering_hash].update_block_number == 0); // Service offering not exists, test S2
+      require(_min_deposit.mul(_max_supply) < channel_deposit_bugbounty_limit); //Agent deposit greater than max allowed, test S1
       require(_min_deposit > 0); // zero deposit is not allowed, test S3
 
       service_offering_s[_offering_hash].agent_address = msg.sender;
@@ -394,7 +394,7 @@ contract PrivatixServiceContract is Ownable {
       assert(service_offering_s[_offering_hash].agent_address == msg.sender); // test S14
       // At leasted challenge_period blocks were mined after last offering structure update
       require(service_offering_s[_offering_hash].update_block_number + challenge_period > block.number); // test S15
-      // return Agent's deposit back to his internal balance @@ to check overflow
+      // return Agent's deposit back to his internal balance
       internal_balances[msg.sender] = internal_balances[msg.sender].add(
         service_offering_s[_offering_hash].min_deposit * service_offering_s[_offering_hash].max_supply
       );
@@ -406,7 +406,7 @@ contract PrivatixServiceContract is Ownable {
       return true;
     }
 
-    /// @notice Called by Agent to register service offering
+    /// @notice Called by Agent to signal that service offering is actual
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
     /// *param _min_deposit Minumum deposit that Client should place to open state channel.
     /// *param _max_supply Maximum supply of services according to service offerings.
@@ -501,7 +501,7 @@ contract PrivatixServiceContract is Ownable {
         // (variable names and types).
         // ! Note that EIP712 might change how hashing is done, triggering a
         // new contract deployment with updated code.
-        bytes32 message_hash = 
+        bytes32 message_hash =
         keccak256("\x19Ethereum Signed Message:\n32",
             keccak256(
                 keccak256(
