@@ -1,3 +1,4 @@
+// 418 674
 pragma solidity ^0.4.17;
 
 import './Token/ERC20.sol';
@@ -179,7 +180,7 @@ contract PrivatixServiceContract is Ownable {
     }
 
     function setNetworkFee(uint32 _network_fee) external onlyOwner { // test S22
-        require(_network_fee <= 100000); // test S23
+        require(_network_fee <= 1000); // test S23
         network_fee = _network_fee;
     }
 
@@ -670,10 +671,13 @@ contract PrivatixServiceContract is Ownable {
 
         require(increaseOfferingSupply(_agent_address, _offering_hash));
         // Send _balance to the receiver, as it is always <= deposit
-        uint256 fee = (_balance/100000)*network_fee; // it's safe because fee can't be more than 100000
-        internal_balances[network_fee_address] = internal_balances[network_fee_address].add(fee);
-        internal_balances[_agent_address] = internal_balances[_agent_address].add(_balance-fee);
-
+        if(network_fee > 0) {
+            uint256 fee = (_balance/100000)*network_fee; // it's safe because fee can't be more than 1000
+            internal_balances[network_fee_address] = internal_balances[network_fee_address].add(fee);
+            internal_balances[_agent_address] = internal_balances[_agent_address].add(_balance-fee);
+        } else {
+            internal_balances[_agent_address] = internal_balances[_agent_address].add(_balance);
+        }
         // Send deposit - balance back to Client
         internal_balances[_client_address] = internal_balances[_client_address].add(channel.deposit - _balance);
 

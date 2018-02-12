@@ -19,6 +19,7 @@ const utils = require('ethereumjs-util');
 
 const Prix_token = artifacts.require("../contracts/Token.sol");
 const Prix2_token = artifacts.require("../contracts/Token2.sol");
+// const stdToken = artifacts.require("../contracts/StandardToken.sol");
 const PSC = artifacts.require("../contracts/PrivatixServiceContract.sol");
 const Sale = artifacts.require("../contracts/Sale.sol");
 
@@ -894,9 +895,9 @@ contract('PSC', (accounts) => {
 
     });
 
-    it("S23: check if fee is more than 100% (100.000)", async () => {
+    it("S23: check if fee is more than 1% (1000)", async () => {
 
-        chaiAssert.isRejected(psc.setNetworkFee(100001, {from: owner}));
+        chaiAssert.isRejected(psc.setNetworkFee(1001, {from: owner}));
 
     });
 
