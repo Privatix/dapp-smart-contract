@@ -1,4 +1,4 @@
-// 418 674
+// 397?
 pragma solidity ^0.4.17;
 
 import './Token/ERC20.sol';
@@ -393,7 +393,7 @@ contract PrivatixServiceContract is Ownable {
       require(service_offering_s[_offering_hash].isActive); // test S13
       // only creator can delete his offering
       assert(service_offering_s[_offering_hash].agent_address == msg.sender); // test S14
-      // At leasted challenge_period blocks were mined after last offering structure update
+      // At least challenge_period blocks were mined after last offering structure update
       require(service_offering_s[_offering_hash].update_block_number + challenge_period > block.number); // test S15
       // return Agent's deposit back to his internal balance
       internal_balances[msg.sender] = internal_balances[msg.sender].add(
@@ -415,8 +415,10 @@ contract PrivatixServiceContract is Ownable {
     function popupServiceOffering (bytes32 _offering_hash) public returns(bool success)
     {
       require(service_offering_s[_offering_hash].update_block_number > 0); // Service offering already exists, test S16
+      // At least challenge_period blocks were mined after last offering structure update
+      require(service_offering_s[_offering_hash].update_block_number + challenge_period < block.number); // test S16a
       require(service_offering_s[_offering_hash].agent_address == msg.sender); // test S17
-      require(block.number > service_offering_s[_offering_hash].update_block_number);
+      // require(block.number > service_offering_s[_offering_hash].update_block_number);
 
       service_offering_s[_offering_hash].update_block_number = uint32(block.number);
 

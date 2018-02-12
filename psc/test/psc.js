@@ -110,7 +110,7 @@ contract('PSC', (accounts) => {
     }
 
 
-    it("I0a: cooperativeClose, standart use case, 0% fee", async () => {
+    it("I0a: cooperativeClose, standard use case, 0% fee", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
@@ -151,7 +151,7 @@ contract('PSC', (accounts) => {
  
     });
 
-    it("I0b: cooperativeClose, standart use case, 0.57% fee", async () => {
+    it("I0b: cooperativeClose, standard use case, 0.57% fee", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
         assert.equal((await prix_token.balanceOf(owner)).toNumber()/1e8, 5, 'balance of owner must be 5 prix');
 
@@ -482,10 +482,13 @@ contract('PSC', (accounts) => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of vendor must be 4e8+20');
 
-        gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, {from:vendor});
         gasUsage["psc.extractBalanceProofSignature"] = await psc.extractBalanceProofSignature.estimateGas(vendor, channel.receipt.blockNumber, offering_hash, sum, signedBalanceSig, {from:vendor});
         gasUsage["psc.extractClosingSignature"] = await psc.extractBalanceProofSignature.estimateGas(client, channel.receipt.blockNumber, offering_hash, sum, signedCloseSig, {from:client});
         gasUsage["psc.getKey"] = await psc.getKey.estimateGas(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+
+        await skip(challenge_period);
+        gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, {from:vendor});
+        await psc.popupServiceOffering(offering_hash, {from:vendor});
 
         gasUsage["psc.removeServiceOffering"] = await psc.removeServiceOffering.estimateGas(offering_hash, {from:vendor});
  
@@ -782,6 +785,23 @@ contract('PSC', (accounts) => {
         chaiAssert.isRejected(psc.popupServiceOffering(nonexistent_offering_hash, {from:vendor}));
         chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
  
+    });
+
+    it("S16a: try to popup offering before challenge period ends", async () => {
+
+        await prix_token.approve(psc.address, 1e8,{from:vendor});
+        await psc.addBalanceERC20(1e8, {from:vendor});
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+
+        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+
+
+        await skip(challenge_period);
+        chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
+        chaiAssert.isRejected(psc.popupServiceOffering(offering_hash, {from:vendor}));
+        await skip(challenge_period);
+        chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
     });
 
     it("S17: try to popup from someone else's name", async () => {
