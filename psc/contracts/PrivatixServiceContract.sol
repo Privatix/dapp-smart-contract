@@ -394,7 +394,7 @@ contract PrivatixServiceContract is Ownable {
       // only creator can delete his offering
       assert(service_offering_s[_offering_hash].agent_address == msg.sender); // test S14
       // At least challenge_period blocks were mined after last offering structure update
-      require(service_offering_s[_offering_hash].update_block_number + challenge_period > block.number); // test S15
+      require(service_offering_s[_offering_hash].update_block_number + challenge_period < block.number); // test S15
       // return Agent's deposit back to his internal balance
       internal_balances[msg.sender] = internal_balances[msg.sender].add(
         service_offering_s[_offering_hash].min_deposit * service_offering_s[_offering_hash].max_supply

@@ -434,7 +434,6 @@ contract('PSC', (accounts) => {
         const settle = await psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
         gasUsage["psc.settle"] = settle.receipt.gasUsed;
 
-
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
         const ret = await psc.returnBalanceERC20(20, {from:vendor});
         gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
@@ -490,6 +489,7 @@ contract('PSC', (accounts) => {
         gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, {from:vendor});
         await psc.popupServiceOffering(offering_hash, {from:vendor});
 
+        await skip(challenge_period);
         gasUsage["psc.removeServiceOffering"] = await psc.removeServiceOffering.estimateGas(offering_hash, {from:vendor});
  
     });
@@ -736,6 +736,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
+        await skip(challenge_period);
         chaiAssert.isRejected(psc.removeServiceOffering(nonexistent_offering_hash, {from:vendor}));
         chaiAssert.isFulfilled(psc.removeServiceOffering(offering_hash, {from:vendor}));
  
@@ -752,12 +753,13 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
+        await skip(challenge_period);
         chaiAssert.isRejected(psc.removeServiceOffering(offering_hash, {from:client}));
         chaiAssert.isFulfilled(psc.removeServiceOffering(offering_hash, {from:vendor}));
  
     });
 
-    it("S15: try to remove offering after the expiry of the challenge_period", async () => {
+    it("S15: try to remove offering before the expiry of the challenge_period", async () => {
 
         await prix_token.approve(psc.address, 1e8,{from:vendor});
         await psc.addBalanceERC20(1e8, {from:vendor});
@@ -765,8 +767,9 @@ contract('PSC', (accounts) => {
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
         await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
 
-        await skip(challenge_period);
         chaiAssert.isRejected(psc.removeServiceOffering(offering_hash, {from:vendor}));
+        await skip(challenge_period);
+        chaiAssert.isFulfilled(psc.removeServiceOffering(offering_hash, {from:vendor}));
  
     });
 
@@ -796,10 +799,10 @@ contract('PSC', (accounts) => {
 
         await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
 
-
         await skip(challenge_period);
         chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
         chaiAssert.isRejected(psc.popupServiceOffering(offering_hash, {from:vendor}));
+
         await skip(challenge_period);
         chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
     });
