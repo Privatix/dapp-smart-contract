@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "ganache-cli & truffle test ./test/psc.js --compile-all --network local_geth && kill %1"
+    "test": "ganache-cli & truffle test ./test/psc.js --compile-all --network local_geth && sudo kill -9 $(lsof -ti :8545)"
   },
   "author": "Vitaliy Gnidenko",
   "license": "ISC",

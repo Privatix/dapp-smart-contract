@@ -798,7 +798,6 @@ contract('PSC', (accounts) => {
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
 
         await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
-
         await skip(challenge_period);
         chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
         chaiAssert.isRejected(psc.popupServiceOffering(offering_hash, {from:vendor}));
