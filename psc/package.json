@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ganache-cli & truffle test ./test/psc.js --compile-all --network local_geth && kill %1"
   },
   "author": "Vitaliy Gnidenko",
   "license": "ISC",
