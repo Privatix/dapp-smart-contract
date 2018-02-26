@@ -1,10 +1,10 @@
 // 397?
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.18;
 
-import './Token/ERC20.sol';
+import './Token.sol';
 import './lib/ECVerify.sol';
-import './Token/Ownable.sol';
-import './lib/SafeMath.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
 
 /// @title Privatix Service Contract.
@@ -32,7 +32,7 @@ contract PrivatixServiceContract is Ownable {
     // This is just for the bug bounty release, as a safety measure.
     uint256 public constant channel_deposit_bugbounty_limit = 10 ** 8 * 300;
 
-    ERC20 public token;
+    Token public token;
 
     mapping (bytes32 => Channel) public channels;
     mapping (bytes32 => ClosingRequest) public closing_requests;
@@ -145,7 +145,7 @@ contract PrivatixServiceContract is Ownable {
         require(_network_fee_address != 0x0);
         require(_challenge_period >= 500);
 
-        token = ERC20(_token_address);
+        token = Token(_token_address);
 
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0);
