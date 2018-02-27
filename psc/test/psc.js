@@ -18,7 +18,7 @@ const abi = require('ethereumjs-abi');
 const utils = require('ethereumjs-util');
 
 const Prix_token = artifacts.require("../contracts/Token.sol");
-const Prix2_token = artifacts.require("../contracts/Token2.sol");
+// const Prix2_token = artifacts.require("../contracts/Token2.sol");
 // const stdToken = artifacts.require("../contracts/StandardToken.sol");
 const PSC = artifacts.require("../contracts/PrivatixServiceContract.sol");
 const Sale = artifacts.require("../contracts/Sale.sol");
