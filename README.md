@@ -1,6 +1,23 @@
 # psc-smart-contract
 
 Privatix Service Contract (PSC)
+
+## Install dependencies
+
+```
+npm install -g truffle
+npm install -g ganache-cli
+npm install -g mocha
+npm install -g mocha-junit-reporter
+```
+
+## Run tests
+```
+npm install
+npm install zeppelin-solidity@1.4.0
+npm run test
+```
+
 ## Smart contract operations
 Ethereum smart contracts playing fundametal role in Privatix DApp architecture. Currently deployed smart contract that holds all PRIX tokens called Privatix Token Contact (hereinafter PTC) and compliant with ERC20 standard. 
 
