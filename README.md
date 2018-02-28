@@ -6,14 +6,11 @@ Privatix Service Contract (PSC)
 ```
 npm install -g truffle
 npm install -g ganache-cli
-npm install -g mocha
-npm install -g mocha-junit-reporter
 ```
 
 ## Run tests
 ```
 npm install
-npm install zeppelin-solidity@1.4.0
 npm run test
 ```
 
