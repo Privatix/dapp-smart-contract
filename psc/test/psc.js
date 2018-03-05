@@ -1,6 +1,7 @@
 import increaseTime, { duration } from 'zeppelin-solidity/test/helpers/increaseTime';
 // import moment from 'moment';
 import * as chai from 'chai';
+const config = require(`../targets/${process.env.TARGET}.json`);
 const chaiAsPromised = require("chai-as-promised");
 
 chai.use(chaiAsPromised);
@@ -24,8 +25,8 @@ const PSC = artifacts.require("../contracts/PrivatixServiceContract.sol");
 const Sale = artifacts.require("../contracts/Sale.sol");
 
 const gasUsage = {};
-const challenge_period = 510;
-
+const challenge_period = config.challengePeriod;
+console.log("challenge period: ", challenge_period);
 contract('PSC', (accounts) => {
     let owner, wallet, client, vendor, prix_token, prix2_token, psc, startTime, endTime;
     let sale;
@@ -41,13 +42,19 @@ contract('PSC', (accounts) => {
         startTime = web3.eth.getBlock('latest').timestamp + duration.weeks(1);
 
         sale = await Sale.new(startTime, wallet);
-
+        console.log("Sale contract created");
         await sale.getFreeTokens(client,5e8);
         await sale.getFreeTokens(owner,5e8);
         await sale.getFreeTokens(vendor, 5e8);
 
         prix_token = await Prix_token.at(await sale.token());
-        psc = await PSC.new(await sale.token(), owner, challenge_period);
+        console.log("before PSC contract creating");
+        try {
+            psc = await PSC.new(await sale.token(), owner, challenge_period+1)
+        }catch(e){
+            console.log("ERROR:", e);
+        }
+        console.log("PSC contract created");
 
     });
 

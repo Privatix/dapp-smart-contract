@@ -1,0 +1,7 @@
+{
+  "challengePeriod": 510
+ ,"devTools": {
+    "_throwEventLogChannelCreated": "",
+    "throwEventLogChannelCreated": "function throwEventLogChannelCreated(address _client_address, address _agent_address, bytes32 _offering_hash, uint192 _deposit, bytes32 _authentication_hash) public {LogChannelCreated(_client_address, _agent_address, _offering_hash, _deposit, _authentication_hash);}"
+  }
+}

@@ -142,7 +142,7 @@ contract PrivatixServiceContract is Ownable {
         require(_token_address != 0x0);
         require(addressHasCode(_token_address));
         require(_network_fee_address != 0x0);
-        require(_challenge_period >= 510);
+        require(_challenge_period >= {{ challengePeriod }});
 
         token = Token(_token_address);
 
@@ -553,7 +553,7 @@ contract PrivatixServiceContract is Ownable {
      *  Dev tools
      */
 
-    function throwEventLogChannelCreated(address _client_address, address _agent_address, bytes32 _offering_hash, uint192 _deposit, bytes32 _authentication_hash) public {LogChannelCreated(_client_address, _agent_address, _offering_hash, _deposit, _authentication_hash);}
+    {{ devTools.throwEventLogChannelCreated }}
 
     /*
      *  Private functions
