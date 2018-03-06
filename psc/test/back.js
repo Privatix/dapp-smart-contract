@@ -29,11 +29,15 @@ const Sale = artifacts.require("../contracts/Sale.sol");
 const gasUsage = {};
 const challenge_period = config.challengePeriod;
 console.log("challenge period: ", challenge_period);
-let psc;
+let psc, sale, prix_token, owner;
+
+const skip = async function(number){
+    await prix_token.approve(psc.address, 1e8,{from:owner});
+    for(var i = 0; i < number; i++) await psc.addBalanceERC20(10, {from:owner});
+}
 
 contract('PSC', (accounts) => {
-    let owner, wallet, client, vendor, prix_token, prix2_token, startTime, endTime;
-    let sale;
+    let wallet, client, vendor,  prix2_token, startTime, endTime;
 
     before(async () => {
         owner = web3.eth.accounts[0];
@@ -46,63 +50,83 @@ contract('PSC', (accounts) => {
         startTime = web3.eth.getBlock('latest').timestamp + duration.weeks(1);
 
         sale = await Sale.new(startTime, wallet);
-        console.log("Sale contract created");
         await sale.getFreeTokens(client,5e8);
         await sale.getFreeTokens(owner,5e8);
         await sale.getFreeTokens(vendor, 5e8);
 
         prix_token = await Prix_token.at(await sale.token());
-        console.log("before PSC contract creating");
         try {
             psc = await PSC.new(await sale.token(), owner, challenge_period+1)
         }catch(e){
             console.log("ERROR:", e);
         }
-        console.log("PSC contract created");
-
     });
 
-    afterEach(function () {
-        if(Object.keys(gasUsage).length){
-            mlog.log("\tgas consumption:");
-            for(var method in gasUsage){
-                mlog.log("\t" + method + ": " + gasUsage[method]);
-                delete gasUsage[method];
-            }
-        }
-    });
-
-    const skip = async function(number){
-        await prix_token.approve(psc.address, 1e8,{from:owner});
-        for(var i = 0; i < number; i++) await psc.addBalanceERC20(10, {from:owner});
-    }
-
-    it("I0a: cooperativeClose, standard use case, 0% fee", async () => {
-        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
-
+    it("fake", async () => {
+        assert.equal(1,1);
     });
 
 });
 
+const bodyParser = require('body-parser');
+const multer = require('multer'); // v1.0.5
+const upload = multer(); // for parsing multipart/form-data
 
 const app = express();
-const owner = web3.eth.accounts[0];
-const wallet = web3.eth.accounts[1];
-const client = web3.eth.accounts[2];
-const vendor = web3.eth.accounts[5];
+app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
-app.get('/throwEventLogChannelCreated', (req, res) => {
-    // res.send('Hello World!');
-    const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-    const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-    console.log(psc);
-    psc.throwEventLogChannelCreated(client, vendor, offering_hash, 500, authentication_hash)
-       .then(result => {
-            res.json(result);
-       });
+
+app.get('/getPSC' , (req, res) => res.json(psc));
+app.get('/getSale', (req, res) => res.json(sale));
+app.get('/getPrix', (req, res) => res.json(prix_token));
+
+app.get('/getKeys', (req, res) => {
+    // don't worry - node.js is smart enough to cache it )
+    const fs = require('fs');
+    const ganache_log = fs.readFileSync('./ganache.log', {encoding: "utf8"});
+    // Available Accounts\n==================\n(0) 0xfae15efc293d4adf3e0ea7c1f33b5bc666a3cfe3\n(1) 0xd1b5190498fa09bf9317a898affda2c215e7e3c0\n(2) 0xa9a9e5df5f3cb7bf3905c12c5223b5f796f703f7\n(3)
+    const allAccounts = /Available Accounts\n[=]+\n(\(\d+\)\s+0x[0-9a-f]+\n)+/i;
+    const account = /0x[0-9a-f]{40}/gi;
+    const accounts = ganache_log.match(allAccounts)[0].match(account);
+    // Private Keys\n==================\n(0) dd3d4a91c97b95fe7c34f2db70193512b30cb52e8d845990c3d9b22fa6f1c035\n(1) c80c20830626027a567bd97041f913583b647babfc780494241e5ea18565e1b5\n(2)
+    const allKeys = /Private Keys\n[=]+\n(\(\d+\)\s+[0-9a-f]+\n)+/i;
+    const key = /[0-9a-f]{64}/gi;
+    const keys = ganache_log.match(allKeys)[0].match(key);
+    // const result = Object.keys(Array(keys.length)).map(i=>({account: accounts[i], privateKey: keys[i]}));
+    const result = accounts.map((account, i) => ({account, privateKey: keys[i]}));
+
+    res.json(result);
+
 });
-app.get('/getContract', (req, res) => {
-    // res.send('Hello World!');
-    res.json(psc);
+
+app.post('/jsonrpc', upload.array(), async (req, res) => {
+    console.log(req.body);
+    if(req.body.method && (req.body.method in psc)){
+        try{
+            let result;
+            if(typeof psc[req.body.method] === "function"){
+                result = await psc[req.body.method](...req.body.params);
+            }else{
+                result = await psc[req.body.method];
+            }
+                res.json({result, id: req.body.id, error: null});
+        }catch(e){
+            res.json({result: null, error: e, id: req.body.id});
+        }
+    }else{
+       res.json({result: null, error: "unknown method", id: req.body.id});
+    }
+    // res.json(req);
 });
-app.listen(5000, () => console.log('Example app listening on port 5000!'))
+
+app.get('/skip/:blocks', async (req, res) => {
+    try{
+        await skip(req.params.blocks);
+        res.json({code: 200, message: `${req.params.blocks} blocks skipped`});
+    }catch (e){
+        res.json({code: 500, error: e});
+    }
+});
+
+app.listen(config.port, () => console.log(`PSC API server is listening on port ${config.port}`))

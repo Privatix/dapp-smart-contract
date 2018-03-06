@@ -42,13 +42,11 @@ contract('PSC', (accounts) => {
         startTime = web3.eth.getBlock('latest').timestamp + duration.weeks(1);
 
         sale = await Sale.new(startTime, wallet);
-        console.log("Sale contract created");
         await sale.getFreeTokens(client,5e8);
         await sale.getFreeTokens(owner,5e8);
         await sale.getFreeTokens(vendor, 5e8);
 
         prix_token = await Prix_token.at(await sale.token());
-        console.log("before PSC contract creating");
         try {
             psc = await PSC.new(await sale.token(), owner, challenge_period+1)
         }catch(e){
