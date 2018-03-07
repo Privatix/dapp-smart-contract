@@ -57,7 +57,8 @@ These instructions will get you a copy of the project up and running on your loc
 
 ## Prerequisites
 
-Install prerequisite software
+Install prerequisite software:
+* [npm v5.6+](https://www.npmjs.com/)
 
 ```
 @gonzazoid please add what software
