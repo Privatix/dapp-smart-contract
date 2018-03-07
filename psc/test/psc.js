@@ -948,7 +948,7 @@ contract('PSC', (accounts) => {
 
     });
 
-    it("S24: check constructor name", async () => {
+    it("S25 check constructor name", async () => {
 
         assert.equal("function" == typeof psc.PrivatixServiceContract, false, "constructor name not match with contract name which make it like regular function");
 
