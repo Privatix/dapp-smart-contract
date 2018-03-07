@@ -65,19 +65,57 @@ users need to install
 and how to install them
 ```
 
-## Installing
+## Installation steps
 
-Perform follow commands:
+Clone the `dapp-smart-contract` repository using git and initialize the modules:
+
 ```
+git clone https://github.com/Privatix/dapp-smart-contract.git
+cd dapp-smart-contract
+git checkout master
+
 @gonzazoid please add a step by step
 series of examples that tell you have
 to get a development env running
 ```
 
 Checking installation succeed:
+
 ```
-@gonzazoid please add how to sure that
-installation was succeed (if it possible)
+@gonzazoid please add how to make sure that
+installation was succeeded (if it possible)
 ```
 
-# Running the tests
+# Tests
+
+## Preparing environment
+@gonzazoid please a step by step
+instruction for preparing environment
+
+## Running the tests
+
+Tests are run using the following command:
+
+```
+@gonzazoid please write how to do this
+```
+
+# Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/Privatix/dapp-smart-contract/tags).
+
+## Authors
+
+* [sofabeat](https://github.com/sofabeat)
+* [gonzazoid](https://github.com/gonzazoid)
+
+See also the list of [contributors](https://github.com/Privatix/dapp-smart-contract/contributors) who participated in this project.
+
+
+# License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE.txt) file for details.
