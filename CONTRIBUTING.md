@@ -52,6 +52,10 @@ We adhere Google code style guides:
 Сoding conventions for writing solidity code:
 * Solidity: http://solidity.readthedocs.io/en/develop/style-guide.html
 
+## Commit message
+> Describe your changes in imperative mood, e.g. "make xyzzy do frotz" instead of "[This patch] makes xyzzy do frotz" or "[I] changed xyzzy to do frotz", as if you are giving orders to the codebase to change its behavior.
+
+
 ## Tests
 
 For any new programmatic functionality, we like unit tests when possible, so if you can keep your code cleanly isolated, please do add a test file to the tests folder.
