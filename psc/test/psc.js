@@ -48,7 +48,7 @@ contract('PSC', (accounts) => {
 
         prix_token = await Prix_token.at(await sale.token());
         try {
-            psc = await PSC.new(await sale.token(), owner, challenge_period+1)
+            psc = await PSC.new(await sale.token(), owner, challenge_period)
         }catch(e){
             console.log("ERROR:", e);
         }
@@ -495,11 +495,11 @@ contract('PSC', (accounts) => {
         gasUsage["psc.extractClosingSignature"] = await psc.extractBalanceProofSignature.estimateGas(client, channel.receipt.blockNumber, offering_hash, sum, signedCloseSig, {from:client});
         gasUsage["psc.getKey"] = await psc.getKey.estimateGas(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
 
-        await skip(challenge_period+1);
+        await skip(challenge_period);
         gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, {from:vendor});
         await psc.popupServiceOffering(offering_hash, {from:vendor});
 
-        await skip(challenge_period+1);
+        await skip(challenge_period);
         gasUsage["psc.removeServiceOffering"] = await psc.removeServiceOffering.estimateGas(offering_hash, {from:vendor});
  
     });
@@ -945,6 +945,12 @@ contract('PSC', (accounts) => {
     it("S24: check if stranger try to set fee address", async () => {
 
         chaiAssert.isRejected(psc.setNetworkFeeAddress(vendor, {from: vendor}));
+
+    });
+
+    it("S24: check constructor name", async () => {
+
+        assert.equal("function" == typeof psc.PrivatixServiceContract, false, "constructor name not match with contract name which make it like regular function");
 
     });
 
