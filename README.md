@@ -68,7 +68,7 @@ and how to install them
 
 ## Installation steps
 
-Clone the `dapp-smart-contract` repository using git and initialize the modules:
+Clone the `dapp-smart-contract` repository using git:
 
 ```
 git clone https://github.com/Privatix/dapp-smart-contract.git
