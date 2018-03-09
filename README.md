@@ -1,3 +1,6 @@
+[![Maintainability](https://api.codeclimate.com/v1/badges/93d283853c41377f8256/maintainability)](https://codeclimate.com/github/Privatix/dapp-smart-contract/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/93d283853c41377f8256/test_coverage)](https://codeclimate.com/github/Privatix/dapp-smart-contract/test_coverage)
+
 # Privatix Service Contract
 
 Privatix Service Contract (PSC)
