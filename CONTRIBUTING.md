@@ -65,6 +65,7 @@ For any new programmatic functionality, we like unit tests when possible, so if 
 
 1. Don't forget to actualize a documentation and dependencies.
 1. Increase the version numbers if it needed. The versioning scheme we use is [SemVer](http://semver.org/).
+1. You may merge the Pull Request in once you have the sign-off of one other developer, or if you do not have permission to do that, you may request the second reviewer to merge it for you.
 1. If this PR closes the issue, add the line `Fixes #$ISSUE_NUMBER`. Ex. For closing issue 42, include the line `Fixes #42`.
 1. If it doesn't close the issue but addresses it partially, just include a reference to the issue number, like `#42`.
 
