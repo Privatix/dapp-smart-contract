@@ -6,6 +6,11 @@ require('babel-register')({
     ignore: /node_modules\/(?!zeppelin-solidity)/,
 });
 
+const HDWalletProvider = require('truffle-hdwallet-provider')
+
+var mnemonic = "language core disease beach celery media mercy ready thing course modify fall lady bag carry";
+
+
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   deploy: [
@@ -22,7 +27,12 @@ module.exports = {
             port: 8545,
             network_id: 15
         },
-
+        ropsten:  {
+            provider: new HDWalletProvider(mnemonic, "https://ropsten.infura.io/"+"MwLMPH2wFZ9sIIaQYniQ"),
+            network_id: 3,
+            gas: 4700000,
+            // from: "0xA5020D791fb405BD2D516A2c0824e5bac0f764B8"
+        },
         // testnet: {
         //     provider: provider,
         //      gasPrice: 200 * 10**8,
@@ -37,5 +47,8 @@ module.exports = {
             gasPrice: 0x01      // <-- Use this low gas price 
         },
     },
-    build: "webpack"
+    build: "webpack",
+    mocha: {
+        reporter: "xunit-file"
+    }
 };

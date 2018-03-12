@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ganache-cli > ./ganache.log 2>&1 & truffle test ./test/psc.js --compile-all --network local_geth && sudo kill -9 $(lsof -ti :8545)",
+    "deploy": "truffle migrate --network local_geth"
   },
   "author": "Vitaliy Gnidenko",
   "license": "ISC",
@@ -23,18 +24,24 @@
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "ethereumjs-abi": "^0.6.5",
-    "ethereumjs-util": "^5.1.2",
+    "ethereumjs-util": "^5.1.4",
     "ganache-cli": "^6.0.3",
     "keccak": "^1.4.0",
+    "mocha": "^5.0.1",
     "moment": "^2.18.1",
     "solidity-sha3": "^0.4.1",
-    "web3": "^1.0.0-beta.27",
-    "zeppelin-solidity": "^1.4.0"
+    "truffle-hdwallet-provider": "0.0.3",
+    "web3": "^1.0.0-beta2",
+    "zeppelin-solidity": "^1.7.0"
   },
   "babel": {
     "babelrc": true,
     "plugins": [
       "transform-es2015-modules-commonjs"
     ]
+  },
+  "devDependencies": {
+    "mocha-junit-reporter": "^1.17.0",
+    "xunit-file": "^1.0.0"
   }
 }
