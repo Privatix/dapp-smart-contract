@@ -77,6 +77,7 @@ cd psc
 ```
 
 Install dependencies:
+
 ```
 npm install
 ```
