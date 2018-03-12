@@ -6,5 +6,8 @@ dist
 node_modules
 key.pem
 *.swp
+*.log
 */package-lock.json
 package-lock.json
+*.abi
+xunit.xml

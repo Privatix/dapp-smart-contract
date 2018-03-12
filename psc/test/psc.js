@@ -18,7 +18,7 @@ const abi = require('ethereumjs-abi');
 const utils = require('ethereumjs-util');
 
 const Prix_token = artifacts.require("../contracts/Token.sol");
-const Prix2_token = artifacts.require("../contracts/Token2.sol");
+// const Prix2_token = artifacts.require("../contracts/Token2.sol");
 // const stdToken = artifacts.require("../contracts/StandardToken.sol");
 const PSC = artifacts.require("../contracts/PrivatixServiceContract.sol");
 const Sale = artifacts.require("../contracts/Sale.sol");
@@ -798,7 +798,6 @@ contract('PSC', (accounts) => {
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
 
         await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
-
         await skip(challenge_period);
         chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
         chaiAssert.isRejected(psc.popupServiceOffering(offering_hash, {from:vendor}));
