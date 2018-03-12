@@ -74,6 +74,10 @@ git clone https://github.com/Privatix/dapp-smart-contract.git
 cd dapp-smart-contract
 git checkout master
 cd psc
+```
+
+Install dependencies
+```
 npm install
 ```
 
