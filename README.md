@@ -5,18 +5,6 @@
 
 Privatix Service Contract (PSC)
 
-## Install dependencies
-```
-npm install -g truffle
-npm install -g ganache-cli
-```
-
-## Run tests
-```
-npm install
-npm run test
-```
-
 ## Smart contract operations
 Ethereum smart contracts playing fundametal role in Privatix DApp architecture. Currently deployed smart contract that holds all PRIX tokens called Privatix Token Contact (hereinafter PTC) and compliant with ERC20 standard.
 
@@ -87,6 +75,11 @@ cd dapp-smart-contract
 git checkout master
 cd psc
 npm install
+```
+
+Install truffle:
+```
+npm install -g truffle
 ```
 
 # Tests
