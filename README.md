@@ -76,7 +76,8 @@ git checkout master
 cd psc
 ```
 
-Install dependencies
+Install dependencies:
+
 ```
 npm install
 ```
