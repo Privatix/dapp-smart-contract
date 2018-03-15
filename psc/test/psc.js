@@ -1,6 +1,7 @@
 import increaseTime, { duration } from 'zeppelin-solidity/test/helpers/increaseTime';
 // import moment from 'moment';
 import * as chai from 'chai';
+const config = require(`../targets/${process.env.TARGET}.json`);
 const chaiAsPromised = require("chai-as-promised");
 
 chai.use(chaiAsPromised);
@@ -24,8 +25,8 @@ const PSC = artifacts.require("../contracts/PrivatixServiceContract.sol");
 const Sale = artifacts.require("../contracts/Sale.sol");
 
 const gasUsage = {};
-const challenge_period = 510;
-
+const challenge_period = config.challengePeriod;
+console.log("challenge period: ", challenge_period);
 contract('PSC', (accounts) => {
     let owner, wallet, client, vendor, prix_token, prix2_token, psc, startTime, endTime;
     let sale;
@@ -41,13 +42,17 @@ contract('PSC', (accounts) => {
         startTime = web3.eth.getBlock('latest').timestamp + duration.weeks(1);
 
         sale = await Sale.new(startTime, wallet);
-
         await sale.getFreeTokens(client,5e8);
         await sale.getFreeTokens(owner,5e8);
         await sale.getFreeTokens(vendor, 5e8);
 
         prix_token = await Prix_token.at(await sale.token());
-        psc = await PSC.new(await sale.token(), owner, challenge_period);
+        try {
+            psc = await PSC.new(await sale.token(), owner, challenge_period)
+        }catch(e){
+            console.log("ERROR:", e);
+        }
+        // console.log("PSC contract created");
 
     });
 
@@ -62,8 +67,13 @@ contract('PSC', (accounts) => {
     });
 
     const skip = async function(number){
-        await prix_token.approve(psc.address, 1e8,{from:owner});
-        for(var i = 0; i < number; i++) await psc.addBalanceERC20(10, {from:owner});
+        let block = await prix_token.approve(psc.address, 1e8,{from:owner});
+        let blockNum = block.receipt.blockNumber;
+        const target = blockNum + number;
+        while(blockNum < target){
+            block = await psc.addBalanceERC20(10, {from:owner});
+            blockNum = block.receipt.blockNumber;
+        }
     }
 
     const getBalanceSignature = function(reciver, blockNumber, offering_hash, balance, contractAddress){
@@ -514,6 +524,7 @@ contract('PSC', (accounts) => {
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
         chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
+        await skip(1);
         chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
  
     });
@@ -524,7 +535,9 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        await skip(1);
         chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 0, 2, {from:vendor}));
+        await skip(1);
         chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 1, 2, {from:vendor}));
  
     });
@@ -680,8 +693,9 @@ contract('PSC', (accounts) => {
         const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
 
         const sum = 10;
-
+        await skip(1);
         chaiAssert.isFulfilled(psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client}));
+        await skip(1);
         chaiAssert.isRejected(psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client}));
  
     });
@@ -700,7 +714,9 @@ contract('PSC', (accounts) => {
         const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
         const channel = await psc.createChannel(vendor, offering_hash, 1e8, authentication_hash, {from:client});
 
+        await skip(1)
         chaiAssert.isRejected(psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, 1e8+1, {from: client}));
+        await skip(1)
         chaiAssert.isFulfilled(psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, 1e8, {from: client}));
     });
 
@@ -755,6 +771,7 @@ contract('PSC', (accounts) => {
 
         await skip(challenge_period);
         chaiAssert.isRejected(psc.removeServiceOffering(offering_hash, {from:client}));
+        await skip(1)
         chaiAssert.isFulfilled(psc.removeServiceOffering(offering_hash, {from:vendor}));
  
     });
@@ -786,6 +803,7 @@ contract('PSC', (accounts) => {
         await skip(challenge_period);
 
         chaiAssert.isRejected(psc.popupServiceOffering(nonexistent_offering_hash, {from:vendor}));
+        await skip(1);
         chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
  
     });
@@ -800,6 +818,7 @@ contract('PSC', (accounts) => {
         await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
         await skip(challenge_period);
         chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
+        await skip(1);
         chaiAssert.isRejected(psc.popupServiceOffering(offering_hash, {from:vendor}));
 
         await skip(challenge_period);
@@ -926,6 +945,12 @@ contract('PSC', (accounts) => {
     it("S24: check if stranger try to set fee address", async () => {
 
         chaiAssert.isRejected(psc.setNetworkFeeAddress(vendor, {from: vendor}));
+
+    });
+
+    it("S25 check constructor name", async () => {
+
+        assert.equal("function" == typeof psc.PrivatixServiceContract, false, "constructor name not match with contract name which make it like regular function");
 
     });
 

@@ -7,8 +7,12 @@
     "test": "test"
   },
   "scripts": {
+    "pretest": "mustache targets/dev.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol ",
     "test": "ganache-cli > ./ganache.log 2>&1 & truffle test ./test/psc.js --compile-all --network local_geth && sudo kill -9 $(lsof -ti :8545)",
-    "deploy": "truffle migrate --network local_geth"
+    "back": "ganache-cli > ./ganache.log 2>&1 & truffle test ./test/back.js --compile-all --network local_geth &",
+    "deploy": "truffle migrate --network local_geth",
+    "dev": "mustache targets/dev.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && npm run back",
+    "stop": "sudo kill -9 $(lsof -ti :8545) && sudo kill -9 $(lsof -ti :5000)"
   },
   "author": "Vitaliy Gnidenko",
   "license": "ISC",
@@ -21,14 +25,17 @@
     "babel-preset-stage-2": "^6.24.1",
     "babel-preset-stage-3": "^6.17.0",
     "babel-register": "^6.23.0",
+    "body-parser": "^1.18.2",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "ethereumjs-abi": "^0.6.5",
     "ethereumjs-util": "^5.1.4",
+    "express": "^4.16.2",
     "ganache-cli": "^6.0.3",
     "keccak": "^1.4.0",
     "mocha": "^5.0.1",
     "moment": "^2.18.1",
+    "multer": "^1.3.0",
     "solidity-sha3": "^0.4.1",
     "truffle-hdwallet-provider": "0.0.3",
     "web3": "^1.0.0-beta2",
@@ -42,6 +49,7 @@
   },
   "devDependencies": {
     "mocha-junit-reporter": "^1.17.0",
+    "mustache": "^2.3.0",
     "xunit-file": "^1.0.0"
   }
 }

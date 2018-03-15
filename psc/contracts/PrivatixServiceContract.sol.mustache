@@ -1,4 +1,3 @@
-// 397?
 pragma solidity ^0.4.18;
 
 import './Token.sol';
@@ -143,7 +142,7 @@ contract PrivatixServiceContract is Ownable {
         require(_token_address != 0x0);
         require(addressHasCode(_token_address));
         require(_network_fee_address != 0x0);
-        require(_challenge_period >= 500);
+        require(_challenge_period >= {{ challengePeriod }});
 
         token = Token(_token_address);
 
@@ -549,6 +548,21 @@ contract PrivatixServiceContract is Ownable {
     {
         return keccak256(_client_address, _agent_address, _open_block_number, _offering_hash);
     }
+
+    /*
+     *  Dev tools
+     */
+
+    {{ devTools.throwEventLogChannelCreated }}
+    {{ devTools.throwEventLogChannelToppedUp }}
+    {{ devTools.throwEventLogChannelCloseRequested }}
+    {{ devTools.throwEventLogServiceOfferingCreated }}
+    {{ devTools.throwEventLogServiceOfferingDeleted }}
+    {{ devTools.throwEventLogServiceOfferingEndpoint }}
+    {{ devTools.throwEventLogServiceOfferingSupplyChanged }}
+    {{ devTools.throwEventLogServiceOfferingPopedUp }}
+    {{ devTools.throwEventLogCooperativeChannelClose }}
+    {{ devTools.throwEventLogUnCooperativeChannelClose }}
 
     /*
      *  Private functions
