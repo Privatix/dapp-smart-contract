@@ -15,7 +15,7 @@
     "stop": "sudo kill -9 $(lsof -ti :8545) && sudo kill -9 $(lsof -ti :5000)"
   },
   "author": "Vitaliy Gnidenko",
-  "license": "ISC",
+  "license": "GPL-3.0-only",
   "dependencies": {
     "babel-plugin-syntax-async-functions": "^6.13.0",
     "babel-plugin-transform-es2015-template-literals": "^6.22.0",
