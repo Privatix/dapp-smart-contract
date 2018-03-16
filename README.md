@@ -73,12 +73,12 @@ Clone the `dapp-smart-contract` repository using git:
 git clone https://github.com/Privatix/dapp-smart-contract.git
 cd dapp-smart-contract
 git checkout master
-cd psc
 ```
 
 Install dependencies:
 
 ```
+cd psc
 npm install
 ```
 
@@ -110,6 +110,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 * [sofabeat](https://github.com/sofabeat)
 * [gonzazoid](https://github.com/gonzazoid)
+* [lart5](https://github.com/lart5)
 
 See also the list of [contributors](https://github.com/Privatix/dapp-smart-contract/contributors) who participated in this project.
 
