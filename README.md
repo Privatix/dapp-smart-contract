@@ -1,5 +1,6 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/93d283853c41377f8256/maintainability)](https://codeclimate.com/github/Privatix/dapp-smart-contract/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/93d283853c41377f8256/test_coverage)](https://codeclimate.com/github/Privatix/dapp-smart-contract/test_coverage)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract?ref=badge_shield)
 
 # Privatix Service Contract
 
@@ -117,3 +118,6 @@ See also the list of [contributors](https://github.com/Privatix/dapp-smart-contr
 # License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE.txt) file for details.
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract?ref=badge_large)
