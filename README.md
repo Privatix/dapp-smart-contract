@@ -1,5 +1,5 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/93d283853c41377f8256/maintainability)](https://codeclimate.com/github/Privatix/dapp-smart-contract/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/93d283853c41377f8256/test_coverage)](https://codeclimate.com/github/Privatix/dapp-smart-contract/test_coverage)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract?ref=badge_shield)
 
 # Privatix Service Contract
 
@@ -73,12 +73,12 @@ Clone the `dapp-smart-contract` repository using git:
 git clone https://github.com/Privatix/dapp-smart-contract.git
 cd dapp-smart-contract
 git checkout master
-cd psc
 ```
 
 Install dependencies:
 
 ```
+cd psc
 npm install
 ```
 
@@ -110,6 +110,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 * [sofabeat](https://github.com/sofabeat)
 * [gonzazoid](https://github.com/gonzazoid)
+* [lart5](https://github.com/lart5)
 
 See also the list of [contributors](https://github.com/Privatix/dapp-smart-contract/contributors) who participated in this project.
 

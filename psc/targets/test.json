@@ -1,0 +1,16 @@
+{
+  "challengePeriod": 100
+ ,"port" : 5000
+ ,"devTools": {
+    "throwEventLogChannelCreated": "",
+    "throwEventLogChannelToppedUp": "",
+    "throwEventLogChannelCloseRequested": "",
+    "throwEventLogServiceOfferingCreated": "",
+    "throwEventLogServiceOfferingDeleted": "",
+    "throwEventLogServiceOfferingEndpoint": "",
+    "throwEventLogServiceOfferingSupplyChanged": "",
+    "throwEventLogServiceOfferingPopedUp": "",
+    "throwEventLogCooperativeChannelClose": "",
+    "throwEventLogUnCooperativeChannelClose": ""
+  }
+}
