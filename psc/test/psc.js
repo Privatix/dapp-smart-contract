@@ -1,6 +1,7 @@
 import increaseTime, { duration } from 'zeppelin-solidity/test/helpers/increaseTime';
 // import moment from 'moment';
 import * as chai from 'chai';
+const config = require(`../targets/${process.env.TARGET}.json`);
 const chaiAsPromised = require("chai-as-promised");
 
 chai.use(chaiAsPromised);
@@ -24,8 +25,8 @@ const PSC = artifacts.require("../contracts/PrivatixServiceContract.sol");
 const Sale = artifacts.require("../contracts/Sale.sol");
 
 const gasUsage = {};
-const challenge_period = 510;
-
+const challenge_period = config.challengePeriod;
+console.log("challenge period: ", challenge_period);
 contract('PSC', (accounts) => {
     let owner, wallet, client, vendor, prix_token, prix2_token, psc, startTime, endTime;
     let sale;
@@ -41,13 +42,17 @@ contract('PSC', (accounts) => {
         startTime = web3.eth.getBlock('latest').timestamp + duration.weeks(1);
 
         sale = await Sale.new(startTime, wallet);
-
         await sale.getFreeTokens(client,5e8);
         await sale.getFreeTokens(owner,5e8);
         await sale.getFreeTokens(vendor, 5e8);
 
         prix_token = await Prix_token.at(await sale.token());
-        psc = await PSC.new(await sale.token(), owner, challenge_period);
+        try {
+            psc = await PSC.new(await sale.token(), owner, challenge_period)
+        }catch(e){
+            console.log("ERROR:", e);
+        }
+        // console.log("PSC contract created");
 
     });
 
@@ -62,8 +67,13 @@ contract('PSC', (accounts) => {
     });
 
     const skip = async function(number){
-        await prix_token.approve(psc.address, 1e8,{from:owner});
-        for(var i = 0; i < number; i++) await psc.addBalanceERC20(10, {from:owner});
+        let block = await prix_token.approve(psc.address, 1e8,{from:owner});
+        let blockNum = block.receipt.blockNumber;
+        const target = blockNum + number;
+        while(blockNum < target){
+            block = await psc.addBalanceERC20(10, {from:owner});
+            blockNum = block.receipt.blockNumber;
+        }
     }
 
     const getBalanceSignature = function(reciver, blockNumber, offering_hash, balance, contractAddress){
@@ -109,6 +119,42 @@ contract('PSC', (accounts) => {
         return message_hash;
     }
 
+    const eventChecker = function(_holder, eventName){
+        // there are at least two ways to check event triggering - looking into transaction's result
+        // or registering your own listener to watch events
+        // I use both of them to show how to handle events
+        // you can also register yours listeners via web3.eth.subscribe (not used here)
+
+        return function(error, result){
+            const holder = _holder;
+            if (error){
+                if(holder.handlers[eventName].reject(error));
+            }else{
+                holder.transaction.then(transaction => {
+                    console.log(eventName, transaction, result);
+                    // not always, see E7 test
+                    // assert.equal(result.transactionHash, transaction.receipt.transactionHash, "hashes must be equal");
+                    expect(transaction.logs.some( log =>  log.event === eventName && result.event === eventName)).to.be.true;
+                    holder.handlers[eventName].resolve();
+                });
+            }
+        };
+    };
+
+    const putOnGuard = function(holder, events, contract){
+        if(!("events" in holder)) holder.events = [];
+        if(!("promises" in holder)) holder.promises = [];
+        if(!("handlers" in holder)) holder.handlers = {};
+        events.forEach(eventName => {
+            const res = new Promise(function(resolve, reject){
+                holder.handlers[eventName] = {resolve, reject};
+                const event = contract[eventName]({fromBlock: 0, toBlock: 'latest'});
+                event.watch(eventChecker(holder, eventName));
+                holder.events.push(event);
+            });
+            holder.promises.push(res);
+        });
+    };
 
     it("I0a: cooperativeClose, standard use case, 0% fee", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -149,6 +195,71 @@ contract('PSC', (accounts) => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+10, 'balance of vendor must be 5e8+20');
  
+    });
+
+    it("E1: createChannel/LogChannelCreated event triggering", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const holder = {};
+        putOnGuard(holder, ["LogChannelCreated"], psc);
+
+        const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        const block = await psc.addBalanceERC20(1e8, {from:vendor});
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        holder.transaction = psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+
+        return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
+    });
+
+    it("E4: registerServiseOffering/LogServiceOfferingCreated event triggering", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const holder = {};
+        putOnGuard(holder, ["LogServiceOfferingCreated"], psc);
+
+        const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        const block = await psc.addBalanceERC20(1e8, {from:vendor});
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        holder.transaction = psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+
+        return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
+    });
+
+    it("E7: cooperativeClose/LogCooperativeChannelClose&LogServiceOfferingSupplyChanged events triggering", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const holder = {};
+        putOnGuard(holder, ["LogCooperativeChannelClose", "LogServiceOfferingSupplyChanged"], psc);
+
+        const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        const block = await psc.addBalanceERC20(1e8, {from:vendor});
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+
+        const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+
+        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+
+        const sum = 10;
+        const balanceSig = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        const signedBalanceSig = web3.eth.sign(client, balanceSig);
+        const closeSig = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
+        const signedCloseSig = web3.eth.sign(vendor, closeSig);
+
+        holder.transaction = psc.cooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, signedBalanceSig, signedCloseSig, {from: vendor});
+
+        return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
+
     });
 
     it("I0b: cooperativeClose, standard use case, 0.57% fee", async () => {
@@ -442,6 +553,56 @@ contract('PSC', (accounts) => {
  
     });
 
+    it('E3: uncooperativeClose/LogChannelCloseRequested event triggering', async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const holder = {};
+        putOnGuard(holder, ["LogChannelCloseRequested"], psc);
+
+        const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        const block = await psc.addBalanceERC20(1e8, {from:vendor});
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+
+        const sum = 10;
+        holder.transaction = psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
+
+        return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
+    });
+
+    it('E9: settle/LogUnCooperativeChannelClose event triggering', async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const holder = {};
+        putOnGuard(holder, ["LogUnCooperativeChannelClose"], psc);
+
+        const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        const block = await psc.addBalanceERC20(1e8, {from:vendor});
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+
+        const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+
+        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+
+        const sum = 10;
+        const uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
+
+        await skip(challenge_period);
+        holder.transaction = psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+
+        return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
+    });
+
     it("I3: measuring gas consumption for other members:", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
@@ -494,6 +655,95 @@ contract('PSC', (accounts) => {
  
     });
 
+    it("E2: topUpChannel/LogChannelToppedUp event triggering", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const holder = {};
+        putOnGuard(holder, ["LogChannelToppedUp"], psc);
+
+        await prix_token.approve(psc.address, 1e8,{from:vendor});
+        await psc.addBalanceERC20(1e8, {from:vendor});
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+
+        await prix_token.approve(psc.address, 1e8,{from:client});
+        await psc.addBalanceERC20(1e8, {from:client});
+
+        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        holder.transaction = psc.topUpChannel(vendor, channel.receipt.blockNumber, offering_hash, 10, {from:client});
+
+        return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
+    });
+
+    it("E5: removeServiceOffering/LogServiceOfferingDeleted event triggering", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const holder = {};
+        putOnGuard(holder, ["LogServiceOfferingDeleted"], psc);
+
+        await prix_token.approve(psc.address, 1e8,{from:vendor});
+        await psc.addBalanceERC20(1e8, {from:vendor});
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+
+        await skip(challenge_period);
+        holder.transaction = psc.removeServiceOffering(offering_hash, {from:vendor});
+
+        return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
+    });
+
+    it("E6: publishServiceOfferingEndpoint/LogServiceOfferingEndpoint event triggering", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const holder = {};
+        putOnGuard(holder, ["LogServiceOfferingEndpoint"], psc);
+
+        await prix_token.approve(psc.address, 1e8,{from:vendor});
+        await psc.addBalanceERC20(1e8, {from:vendor});
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        await prix_token.approve(psc.address, 1e8,{from:client});
+        await psc.addBalanceERC20(1e8, {from:client});
+        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+
+        holder.transaction =  psc.publishServiceOfferingEndpoint(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor});
+
+        return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
+    });
+
+    it("E8: popupServiceOffering/LogServiceOfferingPopedUp event triggering", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const holder = {};
+        putOnGuard(holder, ["LogServiceOfferingPopedUp"], psc);
+
+        await prix_token.approve(psc.address, 1e8,{from:vendor});
+        await psc.addBalanceERC20(1e8, {from:vendor});
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+
+        await prix_token.approve(psc.address, 1e8,{from:client});
+        await psc.addBalanceERC20(1e8, {from:client});
+
+        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        await psc.publishServiceOfferingEndpoint(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor});
+
+        await skip(challenge_period);
+        holder.transaction = psc.popupServiceOffering(offering_hash, {from:vendor});
+
+        return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
+    });
+
     it("S1: check if provider try to publish offering with overflow in _min_deposit * _max_supply", async () => {
 
         await prix_token.approve(psc.address, 1e8,{from:vendor});
@@ -514,6 +764,7 @@ contract('PSC', (accounts) => {
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
         chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
+        await skip(1);
         chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
  
     });
@@ -524,7 +775,9 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        await skip(1);
         chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 0, 2, {from:vendor}));
+        await skip(1);
         chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 1, 2, {from:vendor}));
  
     });
@@ -680,8 +933,9 @@ contract('PSC', (accounts) => {
         const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
 
         const sum = 10;
-
+        await skip(1);
         chaiAssert.isFulfilled(psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client}));
+        await skip(1);
         chaiAssert.isRejected(psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client}));
  
     });
@@ -700,7 +954,9 @@ contract('PSC', (accounts) => {
         const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
         const channel = await psc.createChannel(vendor, offering_hash, 1e8, authentication_hash, {from:client});
 
+        await skip(1)
         chaiAssert.isRejected(psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, 1e8+1, {from: client}));
+        await skip(1)
         chaiAssert.isFulfilled(psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, 1e8, {from: client}));
     });
 
@@ -755,6 +1011,7 @@ contract('PSC', (accounts) => {
 
         await skip(challenge_period);
         chaiAssert.isRejected(psc.removeServiceOffering(offering_hash, {from:client}));
+        await skip(1)
         chaiAssert.isFulfilled(psc.removeServiceOffering(offering_hash, {from:vendor}));
  
     });
@@ -786,6 +1043,7 @@ contract('PSC', (accounts) => {
         await skip(challenge_period);
 
         chaiAssert.isRejected(psc.popupServiceOffering(nonexistent_offering_hash, {from:vendor}));
+        await skip(1);
         chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
  
     });
@@ -800,6 +1058,7 @@ contract('PSC', (accounts) => {
         await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
         await skip(challenge_period);
         chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
+        await skip(1);
         chaiAssert.isRejected(psc.popupServiceOffering(offering_hash, {from:vendor}));
 
         await skip(challenge_period);
@@ -926,6 +1185,12 @@ contract('PSC', (accounts) => {
     it("S24: check if stranger try to set fee address", async () => {
 
         chaiAssert.isRejected(psc.setNetworkFeeAddress(vendor, {from: vendor}));
+
+    });
+
+    it("S25 check constructor name", async () => {
+
+        assert.equal("function" == typeof psc.PrivatixServiceContract, false, "constructor name not match with contract name which make it like regular function");
 
     });
 
