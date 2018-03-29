@@ -1194,4 +1194,17 @@ contract('PSC', (accounts) => {
 
     });
 
+    it("S26: check vendor balance before creating offering", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
+
+        await prix_token.approve(psc.address, 1e8,{from:vendor});
+        await psc.addBalanceERC20(1e8, {from:vendor});
+        chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
+
+    });
+
 });

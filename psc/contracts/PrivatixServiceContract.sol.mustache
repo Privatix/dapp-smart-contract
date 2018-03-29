@@ -374,7 +374,8 @@ contract PrivatixServiceContract is Ownable {
       service_offering_s[_offering_hash].isActive = true;
 
       // Substitute deposit amount for each offering slot from agent's internal balance
-      internal_balances[msg.sender] = internal_balances[msg.sender].sub(_min_deposit * _max_supply);
+      // Service vendor internal balance must be not less then _min_deposit * _max_supply
+      internal_balances[msg.sender] = internal_balances[msg.sender].sub(_min_deposit * _max_supply); // test S26
 
       LogServiceOfferingCreated(msg.sender, _offering_hash, _min_deposit, _max_supply); // test E4
 
