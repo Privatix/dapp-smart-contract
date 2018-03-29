@@ -11,3 +11,4 @@ key.pem
 package-lock.json
 *.abi
 xunit.xml
+PrivatixServiceContract.sol

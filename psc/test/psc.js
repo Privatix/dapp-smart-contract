@@ -131,7 +131,6 @@ contract('PSC', (accounts) => {
                 if(holder.handlers[eventName].reject(error));
             }else{
                 holder.transaction.then(transaction => {
-                    console.log(eventName, transaction, result);
                     // not always, see E7 test
                     // assert.equal(result.transactionHash, transaction.receipt.transactionHash, "hashes must be equal");
                     expect(transaction.logs.some( log =>  log.event === eventName && result.event === eventName)).to.be.true;
@@ -645,6 +644,7 @@ contract('PSC', (accounts) => {
         gasUsage["psc.extractBalanceProofSignature"] = await psc.extractBalanceProofSignature.estimateGas(vendor, channel.receipt.blockNumber, offering_hash, sum, signedBalanceSig, {from:vendor});
         gasUsage["psc.extractClosingSignature"] = await psc.extractBalanceProofSignature.estimateGas(client, channel.receipt.blockNumber, offering_hash, sum, signedCloseSig, {from:client});
         gasUsage["psc.getKey"] = await psc.getKey.estimateGas(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+        gasUsage["psc.balanceOf"] = await psc.balanceOf.estimateGas(client, {from:client});
 
         await skip(challenge_period);
         gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, {from:vendor});
@@ -1188,9 +1188,18 @@ contract('PSC', (accounts) => {
 
     });
 
-    it("S25 check constructor name", async () => {
+    it("S25: check constructor name", async () => {
 
         assert.equal("function" == typeof psc.PrivatixServiceContract, false, "constructor name not match with contract name which make it like regular function");
+
+    });
+
+    it("U1: psc.balanceOf", async () => {
+
+        await prix_token.approve(psc.address, 1e8,{from:client});
+        await psc.addBalanceERC20(1e8, {from:client});
+        const balance = await psc.balanceOf.call(client, {from:client});
+        assert.equal(balance, 1e8, 'balance must be 1 prix');
 
     });
 

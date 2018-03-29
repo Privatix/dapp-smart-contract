@@ -121,6 +121,7 @@ contract PrivatixServiceContract is Ownable {
       uint32 indexed _open_block_number,
       bytes32 _offering_hash,
       uint192 _balance);
+
     /*
      *  Modifiers
      */
@@ -172,6 +173,13 @@ contract PrivatixServiceContract is Ownable {
     function returnBalanceERC20(uint192 _value) external {
       internal_balances[msg.sender] = internal_balances[msg.sender].sub(_value); // test S21
       require(token.transfer(msg.sender, _value));
+    }
+
+    /// @notice Returns user internal balance.
+    function balanceOf(address _address) external
+    returns(uint256)
+    {
+      return (internal_balances[_address]); // test U1
     }
 
     function setNetworkFeeAddress(address _network_fee_address) external onlyOwner { // test S24
