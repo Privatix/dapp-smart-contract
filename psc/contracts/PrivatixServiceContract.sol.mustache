@@ -4,10 +4,11 @@ import './Token.sol';
 import './lib/ECVerify.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-
+import './lib/SafeMath192.sol';
 
 /// @title Privatix Service Contract.
 contract PrivatixServiceContract is Ownable {
+    using SafeMath192 for uint192;
     using SafeMath for uint256;
     /*
      *  Data structures
@@ -35,12 +36,12 @@ contract PrivatixServiceContract is Ownable {
 
     mapping (bytes32 => Channel) public channels;
     mapping (bytes32 => ClosingRequest) public closing_requests;
-    mapping (address => uint256) public internal_balances;
+    mapping (address => uint192) public internal_balances;
     mapping(bytes32 => ServiceOffering) private service_offering_s;
 
     // 32 bytes + 29 bytes
     struct ServiceOffering{
-      uint256 min_deposit;  // bytes32 - Minumum deposit that Client should place to open state channel.
+      uint192 min_deposit;  // bytes32 - Minumum deposit that Client should place to open state channel.
       address agent_address; //bytes20 - Address of Agent.
       uint16 max_supply; // bytes2 - Maximum supply of services according to service offerings.
       uint16 current_supply; // bytes2 - Currently remianing available supply.
@@ -365,7 +366,7 @@ contract PrivatixServiceContract is Ownable {
     /// @return True on sucess
     function registerServiceOffering (
      bytes32 _offering_hash,
-     uint256 _min_deposit,
+     uint192 _min_deposit,
      uint16 _max_supply)
      public
      returns(bool success)
@@ -383,7 +384,7 @@ contract PrivatixServiceContract is Ownable {
 
       // Substitute deposit amount for each offering slot from agent's internal balance
       // Service vendor internal balance must be not less then _min_deposit * _max_supply
-      internal_balances[msg.sender] = internal_balances[msg.sender].sub(_min_deposit * _max_supply); // test S26
+      internal_balances[msg.sender] = internal_balances[msg.sender].sub(_min_deposit.mul(_max_supply)); // test S26
 
       LogServiceOfferingCreated(msg.sender, _offering_hash, _min_deposit, _max_supply); // test E4
 
@@ -697,7 +698,7 @@ contract PrivatixServiceContract is Ownable {
         require(increaseOfferingSupply(_agent_address, _offering_hash));
         // Send _balance to the receiver, as it is always <= deposit
         if(network_fee > 0) {
-            uint256 fee = (_balance/100000)*network_fee; // it's safe because fee can't be more than 1000
+            uint192 fee = (_balance/100000)*network_fee; // it's safe because network_fee can't be more than 1000
             internal_balances[network_fee_address] = internal_balances[network_fee_address].add(fee);
             internal_balances[_agent_address] = internal_balances[_agent_address].add(_balance-fee);
         } else {

@@ -750,8 +750,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        // (2^255+1)*2 mod(2^256) == 2
-        const min_deposit = web3.toBigNumber('0x8000000000000000000000000000000000000000000000000000000000000001');
+        // (2^191+1)*2 mod(2^192) == 2
+        const min_deposit = web3.toBigNumber('0x800000000000000000000000000000000000000000000001');
         chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, min_deposit, 2, {from:vendor}));
         chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 2, 2, {from:vendor}));
  
