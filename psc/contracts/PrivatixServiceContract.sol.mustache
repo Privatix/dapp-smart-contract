@@ -176,7 +176,7 @@ contract PrivatixServiceContract is Ownable {
     }
 
     /// @notice Returns user internal balance.
-    function balanceOf(address _address) external
+    function balanceOf(address _address) external view
     returns(uint256)
     {
       return (internal_balances[_address]); // test U1
