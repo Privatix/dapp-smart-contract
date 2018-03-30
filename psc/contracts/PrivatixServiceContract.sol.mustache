@@ -93,22 +93,22 @@ contract PrivatixServiceContract is Ownable {
         uint32 indexed _open_block_number,
         bytes32 _offering_hash,
         uint192 _balance);
-    event LogServiceOfferingCreated(
+    event LogOfferingCreated(
         address indexed _agent_address,
         bytes32 indexed _offering_hash,
         uint256 _min_deposit,
         uint16 _current_supply);
-    event LogServiceOfferingDeleted(
+    event LogOfferingDeleted(
       bytes32 indexed _offering_hash);
-    event LogServiceOfferingEndpoint(
+    event LogOfferingEndpoint(
       address indexed _client,
       bytes32 indexed _offering_hash,
       uint32 indexed _open_block_number,
       bytes32 _endpoint_hash);
-    event LogServiceOfferingSupplyChanged(
+    event LogOfferingSupplyChanged(
       bytes32 indexed _offering_hash,
       uint16 _current_supply);
-    event LogServiceOfferingPopedUp(
+    event LogOfferingPopedUp(
       bytes32 indexed _offering_hash);
     event LogCooperativeChannelClose(
       address indexed _client,
@@ -351,7 +351,7 @@ contract PrivatixServiceContract is Ownable {
     function publishServiceOfferingEndpoint(address _client_address, bytes32 _offering_hash, uint32 _open_block_number, bytes32 _endpoint_hash) external
     {
       require(service_offering_s[_offering_hash].agent_address == msg.sender); // test S12
-      LogServiceOfferingEndpoint(_client_address, _offering_hash, _open_block_number, _endpoint_hash); // test E6
+      LogOfferingEndpoint(_client_address, _offering_hash, _open_block_number, _endpoint_hash); // test E6
     }
 
 
@@ -386,7 +386,7 @@ contract PrivatixServiceContract is Ownable {
       // Service vendor internal balance must be not less then _min_deposit * _max_supply
       internal_balances[msg.sender] = internal_balances[msg.sender].sub(_min_deposit.mul(_max_supply)); // test S26
 
-      LogServiceOfferingCreated(msg.sender, _offering_hash, _min_deposit, _max_supply); // test E4
+      LogOfferingCreated(msg.sender, _offering_hash, _min_deposit, _max_supply); // test E4
 
       return true;
     }
@@ -411,7 +411,7 @@ contract PrivatixServiceContract is Ownable {
       // this flag marks offering as deleted
       service_offering_s[_offering_hash].isActive = false;
 
-      LogServiceOfferingDeleted(_offering_hash); // test E5
+      LogOfferingDeleted(_offering_hash); // test E5
 
       return true;
     }
@@ -431,7 +431,7 @@ contract PrivatixServiceContract is Ownable {
 
       service_offering_s[_offering_hash].update_block_number = uint32(block.number);
 
-      LogServiceOfferingPopedUp(_offering_hash); // test E8
+      LogOfferingPopedUp(_offering_hash); // test E8
 
       return true;
     }
@@ -566,11 +566,11 @@ contract PrivatixServiceContract is Ownable {
     {{ devTools.throwEventLogChannelCreated }}
     {{ devTools.throwEventLogChannelToppedUp }}
     {{ devTools.throwEventLogChannelCloseRequested }}
-    {{ devTools.throwEventLogServiceOfferingCreated }}
-    {{ devTools.throwEventLogServiceOfferingDeleted }}
-    {{ devTools.throwEventLogServiceOfferingEndpoint }}
-    {{ devTools.throwEventLogServiceOfferingSupplyChanged }}
-    {{ devTools.throwEventLogServiceOfferingPopedUp }}
+    {{ devTools.throwEventLogOfferingCreated }}
+    {{ devTools.throwEventLogOfferingDeleted }}
+    {{ devTools.throwEventLogOfferingEndpoint }}
+    {{ devTools.throwEventLogOfferingSupplyChanged }}
+    {{ devTools.throwEventLogOfferingPopedUp }}
     {{ devTools.throwEventLogCooperativeChannelClose }}
     {{ devTools.throwEventLogUnCooperativeChannelClose }}
 
@@ -594,7 +594,7 @@ contract PrivatixServiceContract is Ownable {
       require(service_offering_s[_offering_hash].current_supply+1 <= service_offering_s[_offering_hash].max_supply);
       service_offering_s[_offering_hash].current_supply = service_offering_s[_offering_hash].current_supply+1;
 
-      LogServiceOfferingSupplyChanged(_offering_hash, service_offering_s[_offering_hash].current_supply); // test E7
+      LogOfferingSupplyChanged(_offering_hash, service_offering_s[_offering_hash].current_supply); // test E7
 
       return true;
     }
@@ -614,7 +614,7 @@ contract PrivatixServiceContract is Ownable {
      service_offering_s[_offering_hash].current_supply = service_offering_s[_offering_hash].current_supply-1;
      service_offering_s[_offering_hash].update_block_number = uint32(block.number);
 
-     LogServiceOfferingSupplyChanged(_offering_hash, service_offering_s[_offering_hash].current_supply);
+     LogOfferingSupplyChanged(_offering_hash, service_offering_s[_offering_hash].current_supply);
    }
 
     /// @dev Creates a new channel between a Client and a Agent.

@@ -5,11 +5,11 @@
     "throwEventLogChannelCreated": "",
     "throwEventLogChannelToppedUp": "",
     "throwEventLogChannelCloseRequested": "",
-    "throwEventLogServiceOfferingCreated": "",
-    "throwEventLogServiceOfferingDeleted": "",
-    "throwEventLogServiceOfferingEndpoint": "",
-    "throwEventLogServiceOfferingSupplyChanged": "",
-    "throwEventLogServiceOfferingPopedUp": "",
+    "throwEventLogOfferingCreated": "",
+    "throwEventLogOfferingDeleted": "",
+    "throwEventLogOfferingEndpoint": "",
+    "throwEventLogOfferingSupplyChanged": "",
+    "throwEventLogOfferingPopedUp": "",
     "throwEventLogCooperativeChannelClose": "",
     "throwEventLogUnCooperativeChannelClose": ""
   }
