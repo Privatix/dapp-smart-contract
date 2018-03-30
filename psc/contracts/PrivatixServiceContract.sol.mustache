@@ -41,7 +41,7 @@ contract PrivatixServiceContract is Ownable {
 
     // 32 bytes + 29 bytes
     struct ServiceOffering{
-      uint192 min_deposit;  // bytes32 - Minumum deposit that Client should place to open state channel.
+      uint192 min_deposit;  // bytes24 - Minumum deposit that Client should place to open state channel.
       address agent_address; //bytes20 - Address of Agent.
       uint16 max_supply; // bytes2 - Maximum supply of services according to service offerings.
       uint16 current_supply; // bytes2 - Currently remianing available supply.
