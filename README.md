@@ -1,7 +1,7 @@
-Master branch:
+[Master](https://github.com/Privatix/dapp-smart-contract):
 ![Build Status](https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES)
 
-Develop branch:
+[Develop](https://github.com/Privatix/dapp-smart-contract/tree/develop):
 ![Build Status](https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES3)
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract?ref=badge_shield)
