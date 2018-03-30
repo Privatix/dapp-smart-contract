@@ -1,11 +1,11 @@
-[Master](https://github.com/Privatix/dapp-smart-contract):
-<img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES">
-
-[Develop](https://github.com/Privatix/dapp-smart-contract/tree/develop):
-<img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES3">
-
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract?ref=badge_shield)
 [![Maintainability](https://api.codeclimate.com/v1/badges/93d283853c41377f8256/maintainability)](https://codeclimate.com/github/Privatix/dapp-smart-contract/maintainability)
+
+[master](https://github.com/Privatix/dapp-smart-contract):
+<img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES">
+
+[develop](https://github.com/Privatix/dapp-smart-contract/tree/develop):
+<img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES3">
 
 # Privatix Service Contract
 
