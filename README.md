@@ -103,6 +103,25 @@ TARGET=dev npm run test
 ```
 Available targets you can see in `targets` directory. Setting the environment variable may differ on your system.
 
+# Deploy
+
+There are two npm sripts for delpoy - `npm run deploy` and `npm run ropsten`. `npm run deploy` script deploys contract to local_geth network. Although it seems not much useful it provides information about deploys costs, you can see them in ganache.log.
+
+npm run ropsten deploys contract into ropsten testnet.
+
+After deploing abi files are saved to current directory (psc).
+
+It's nesessary to point out wich configuration you want to use. Available configurations are `dev` and `test`, you can see them in `targets` directory. Of cource you can add your own configuration.
+
+```
+TARGET=dev npm run ropsten
+TARGET=test npm run deploy
+```
+
+If you have already deployed Sale contract you can use it when deploing PSC contract - just set `saleAddress` property in configuration.
+
+Before deploing make sure you have anough funds on wallet (1 eth will be anough). Deploy scripts use wallet with 0xA5020D791fb405BD2D516A2c0824e5bac0f764B8 address via infura (see truffle.js). You can request ethers for free [here, make sure you have Metamask extension installed](https://faucet.metamask.io/) or [here](http://faucet.ropsten.be:3001/).
+
 # Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.

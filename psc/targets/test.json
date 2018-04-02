@@ -1,5 +1,5 @@
 {
-  "challengePeriod": 100
+  "challengePeriod": 50
  ,"port" : 5000
  ,"devTools": {
     "throwEventLogChannelCreated": "",
@@ -12,5 +12,6 @@
     "throwEventLogOfferingPopedUp": "",
     "throwEventLogCooperativeChannelClose": "",
     "throwEventLogUnCooperativeChannelClose": ""
-  }
+  },
+  "saleAddress": "0x5a6c9f9817d5877695c50028d279f215d7eb8273"
 }
