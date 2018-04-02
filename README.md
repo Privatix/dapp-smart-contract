@@ -113,6 +113,7 @@ There are two npm scripts for deploy — `npm run deploy` and `npm run ropsten`.
 After deploying, abi files are saved to current directory (psc).
 
 It's necessary to point out which configuration you want to use. Available configurations are:
+
 * `dev`
 * `test`
 
@@ -128,6 +129,7 @@ If you have already deployed Sale contract you can use it when deploying PSC con
 Before deploying make sure you have enough funds on wallet (1 eth will be enough). Deploy scripts use wallet with `0xA5020D791fb405BD2D516A2c0824e5bac0f764B8` address via infura (see `truffle.js`).
 
 You can request ethers for free here:
+
 * [metamask.io](https://faucet.metamask.io/) (make sure you have Metamask extension installed)
 * [ropsten.be](http://faucet.ropsten.be:3001/)
 
