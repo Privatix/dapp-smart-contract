@@ -435,17 +435,6 @@ contract PrivatixServiceContract is Ownable {
       return true;
     }
 
-    /// @dev Returns the Agent address extracted from the closing signature.
-    /// Works with eth_signTypedData https://github.com/ethereum/EIPs/pull/712.
-    /// @param _client_address The address that sends tokens.
-    /// @param _open_block_number The block number at which a channel between the
-    /// Client and Agent was created.
-    /// @param _offering_hash Service Offering hash that uniquely identifies it.
-    /// @param _balance The amount of tokens owed by the Client to the Agent.
-    /// @param _closing_sig The Agent's signed balance message, containing the Client's address.
-    /// @return Address of the closing signature signer.
-
-
     /// @notice Returns the sender address extracted from the balance proof or closing signature.
     /// dev Works with eth_signTypedData https://github.com/ethereum/EIPs/pull/712.
     /// @param _address The address of Agent or Client that receives/sends tokens.
@@ -454,7 +443,7 @@ contract PrivatixServiceContract is Ownable {
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
     /// @param _balance The amount of tokens owed by the Client to the Agent.
     /// @param _msg_sig The balance message signed by the Client or Agent (depends on _type).
-    /// @param _type: true - extract from BalanceProofSignature signed by Client
+    /// @param _type true - extract from BalanceProofSignature signed by Client,
     /// false - extract from ClosingSignature signed by Agent
     /// @return Address of the balance proof signer.
     function extractSignature(
