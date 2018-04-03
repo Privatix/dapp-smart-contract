@@ -26,23 +26,22 @@ function save(abi, name){
 };
 
 module.exports = async function(deployer, network, accounts) {
-    if(config.saleAddress && config.saleAddress !== '') {
-        Sale.at(Sale.address).then(function(instance){
-            // instance.getFreeTokens(accounts[0], 2e8).then(function(){
-                instance.token().then(function(token){
-                    deployer.deploy(PSC, token, accounts[0], config.challengePeriod).then(saveAbi);
-                });
-            // });
+
+    const deploy = function(tokenContract){
+        tokenContract.token().then(function(token){
+            deployer.deploy(PSC, token, accounts[0], config.challengePeriod).then(saveAbi);
         });
+    };
+
+    if(config.saleAddress && config.saleAddress !== '') {
+        Sale.at(config.saleAddress).then(deploy);
     } else {
         const startTime = Date.now() + 60000;
         deployer.deploy(Sale, startTime, accounts[0]).then(function (){
 
             Sale.at(Sale.address).then(function(instance){
                 instance.getFreeTokens(accounts[0], 2e8).then(function(){
-                    instance.token().then(function(token){
-                        deployer.deploy(PSC, token, accounts[0], config.challengePeriod).then(saveAbi);
-                    });
+                    instance.token().then(deploy);
                 });
             });
         });
