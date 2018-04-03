@@ -41,7 +41,7 @@ module.exports = async function(deployer, network, accounts) {
 
             Sale.at(Sale.address).then(function(instance){
                 instance.getFreeTokens(accounts[0], 2e8).then(function(){
-                    instance.token().then(deploy);
+                    deploy(instance);
                 });
             });
         });
