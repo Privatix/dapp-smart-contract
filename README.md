@@ -117,11 +117,12 @@ It's necessary to point out which configuration you want to use. Available confi
 
 * `dev`
 * `test`
+* `ropsten`
 
 You can see them in `targets` directory. Of course, you can add your own configuration.
 
 ```
-TARGET=dev npm run ropsten
+TARGET=ropsten npm run ropsten
 TARGET=test npm run deploy
 ```
 
