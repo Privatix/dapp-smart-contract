@@ -95,7 +95,7 @@ contract PrivatixServiceContract is Ownable {
     event LogOfferingCreated(
         address indexed _agent,
         bytes32 indexed _offering_hash,
-        uint256 _min_deposit,
+        uint256 indexed _min_deposit,
         uint16 _current_supply);
     event LogOfferingDeleted(
       address indexed _agent,
