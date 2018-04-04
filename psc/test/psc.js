@@ -641,8 +641,8 @@ contract('PSC', (accounts) => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of vendor must be 4e8+20');
 
-        gasUsage["psc.extractBalanceProofSignature"] = await psc.extractBalanceProofSignature.estimateGas(vendor, channel.receipt.blockNumber, offering_hash, sum, signedBalanceSig, {from:vendor});
-        gasUsage["psc.extractClosingSignature"] = await psc.extractBalanceProofSignature.estimateGas(client, channel.receipt.blockNumber, offering_hash, sum, signedCloseSig, {from:client});
+        gasUsage["psc.extractSignature (balance)"] = await psc.extractSignature.estimateGas(vendor, channel.receipt.blockNumber, offering_hash, sum, signedBalanceSig, true, {from:vendor});
+        gasUsage["psc.extractSignature (closing)"] = await psc.extractSignature.estimateGas(client, channel.receipt.blockNumber, offering_hash, sum, signedCloseSig, false, {from:client});
         gasUsage["psc.getKey"] = await psc.getKey.estimateGas(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
         gasUsage["psc.balanceOf"] = await psc.balanceOf.estimateGas(client, {from:client});
 

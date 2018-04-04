@@ -1,15 +1,14 @@
 pragma solidity ^0.4.18;
 
-import './Token.sol';
+import './ERC20.sol';
 import './lib/ECVerify.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './lib/SafeMath192.sol';
 
 /// @title Privatix Service Contract.
 contract PrivatixServiceContract is Ownable {
     using SafeMath192 for uint192;
-    using SafeMath for uint256;
+
     /*
      *  Data structures
      */
@@ -32,7 +31,7 @@ contract PrivatixServiceContract is Ownable {
     // This is just for the bug bounty release, as a safety measure.
     uint256 public constant channel_deposit_bugbounty_limit = 10 ** 8 * 300;
 
-    Token public token;
+    ERC20 public token;
 
     mapping (bytes32 => Channel) public channels;
     mapping (bytes32 => ClosingRequest) public closing_requests;
@@ -146,7 +145,7 @@ contract PrivatixServiceContract is Ownable {
         require(_network_fee_address != 0x0);
         require(_challenge_period >= {{ challengePeriod }});
 
-        token = Token(_token_address);
+        token = ERC20(_token_address);
 
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0);
@@ -251,10 +250,10 @@ contract PrivatixServiceContract is Ownable {
         external
     {
         // Derive Client address from signed balance proof
-        address sender = extractBalanceProofSignature(_agent_address, _open_block_number, _offering_hash, _balance, _balance_msg_sig);
+        address sender = extractSignature(_agent_address, _open_block_number, _offering_hash, _balance, _balance_msg_sig, true);
 
         // Derive Agent address from closing signature
-        address receiver = extractClosingSignature(sender, _open_block_number, _offering_hash, _balance, _closing_sig);
+        address receiver = extractSignature(sender, _open_block_number, _offering_hash, _balance, _closing_sig, false);
         require(receiver == _agent_address); // tests S6, I1a-I1f
 
         // Both signatures have been verified and the channel can be settled.
@@ -348,7 +347,12 @@ contract PrivatixServiceContract is Ownable {
     /// @param _open_block_number The block number at which a channel between the
     /// Client and Agent was created.
     /// @param _endpoint_hash Hash of endpoint message delivered off-chain.
-    function publishServiceOfferingEndpoint(address _client_address, bytes32 _offering_hash, uint32 _open_block_number, bytes32 _endpoint_hash) external
+    function publishServiceOfferingEndpoint(
+     address _client_address,
+     bytes32 _offering_hash,
+     uint32 _open_block_number,
+     bytes32 _endpoint_hash)
+     external
     {
       require(service_offering_s[_offering_hash].agent_address == msg.sender); // test S12
       LogOfferingEndpoint(_client_address, _offering_hash, _open_block_number, _endpoint_hash); // test E6
@@ -375,12 +379,7 @@ contract PrivatixServiceContract is Ownable {
       require(_min_deposit.mul(_max_supply) < channel_deposit_bugbounty_limit); //Agent deposit greater than max allowed, test S1
       require(_min_deposit > 0); // zero deposit is not allowed, test S3
 
-      service_offering_s[_offering_hash].agent_address = msg.sender;
-      service_offering_s[_offering_hash].min_deposit = _min_deposit;
-      service_offering_s[_offering_hash].max_supply = _max_supply;
-      service_offering_s[_offering_hash].current_supply = _max_supply;
-      service_offering_s[_offering_hash].update_block_number = uint32(block.number);
-      service_offering_s[_offering_hash].isActive = true;
+      service_offering_s[_offering_hash] = ServiceOffering(_min_deposit, msg.sender, _max_supply, _max_supply, uint32(block.number), true);
 
       // Substitute deposit amount for each offering slot from agent's internal balance
       // Service vendor internal balance must be not less then _min_deposit * _max_supply
@@ -436,21 +435,24 @@ contract PrivatixServiceContract is Ownable {
       return true;
     }
 
-    /// @notice Returns the sender address extracted from the balance proof.
+    /// @notice Returns the sender address extracted from the balance proof or closing signature.
     /// dev Works with eth_signTypedData https://github.com/ethereum/EIPs/pull/712.
-    /// @param _agent_address The address of Agent that receives tokens.
+    /// @param _address The address of Agent or Client that receives/sends tokens.
     /// @param _open_block_number The block number at which a channel between the
     /// Client and Agent was created.
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
     /// @param _balance The amount of tokens owed by the Client to the Agent.
-    /// @param _balance_msg_sig The balance message signed by the Client.
+    /// @param _msg_sig The balance message signed by the Client or Agent (depends on _type).
+    /// @param _type true - extract from BalanceProofSignature signed by Client,
+    /// false - extract from ClosingSignature signed by Agent
     /// @return Address of the balance proof signer.
-    function extractBalanceProofSignature(
-        address _agent_address,
+    function extractSignature(
+        address _address,
         uint32 _open_block_number,
         bytes32 _offering_hash,
         uint192 _balance,
-        bytes _balance_msg_sig)
+        bytes _msg_sig,
+        bool _type)
         public
         view
         returns (address)
@@ -461,20 +463,21 @@ contract PrivatixServiceContract is Ownable {
         // (variable names and types).
         // ! Note that EIP712 might change how hashing is done, triggering a
         // new contract deployment with updated code.
+
         bytes32 message_hash =
         keccak256("\x19Ethereum Signed Message:\n32",
             keccak256(
                 keccak256(
                     'string message_id',
-                    'address receiver',
+                    _type ? 'address receiver' : 'address sender',
                     'uint32 block_created',
                     'bytes32 offering_hash',
                     'uint192 balance',
                     'address contract'
                 ),
                 keccak256(
-                    'Privatix: sender balance proof signature',
-                    _agent_address,
+                    _type ? 'Privatix: sender balance proof signature' : 'Privatix: receiver closing signature',
+                    _address,
                     _open_block_number,
                     _offering_hash,
                     _balance,
@@ -484,59 +487,7 @@ contract PrivatixServiceContract is Ownable {
         );
 
         // Derive address from signature
-        address signer = ECVerify.ecverify(message_hash, _balance_msg_sig);
-        return signer;
-    }
-
-    /// @dev Returns the Agent address extracted from the closing signature.
-    /// Works with eth_signTypedData https://github.com/ethereum/EIPs/pull/712.
-    /// @param _client_address The address that sends tokens.
-    /// @param _open_block_number The block number at which a channel between the
-    /// Client and Agent was created.
-    /// @param _offering_hash Service Offering hash that uniquely identifies it.
-    /// @param _balance The amount of tokens owed by the Client to the Agent.
-    /// @param _closing_sig The Agent's signed balance message, containing the Client's address.
-    /// @return Address of the closing signature signer.
-    function extractClosingSignature(
-        address _client_address,
-        uint32 _open_block_number,
-        bytes32 _offering_hash,
-        uint192 _balance,
-        bytes _closing_sig)
-        public
-        view
-        returns (address)
-    {
-        // The variable names from below will be shown to the sender when signing
-        // the balance proof, so they have to be kept in sync with the Dapp client.
-        // The hashed strings should be kept in sync with this function's parameters
-        // (variable names and types).
-        // ! Note that EIP712 might change how hashing is done, triggering a
-        // new contract deployment with updated code.
-        bytes32 message_hash =
-        keccak256("\x19Ethereum Signed Message:\n32",
-            keccak256(
-                keccak256(
-                    'string message_id',
-                    'address sender',
-                    'uint32 block_created',
-                    'bytes32 offering_hash',
-                    'uint192 balance',
-                    'address contract'
-                ),
-                keccak256(
-                    'Privatix: receiver closing signature',
-                    _client_address,
-                    _open_block_number,
-                    _offering_hash,
-                    _balance,
-                    address(this)
-                )
-            )
-        );
-
-        // Derive address from signature
-        address signer = ECVerify.ecverify(message_hash, _closing_sig);
+        address signer = ECVerify.ecverify(message_hash, _msg_sig);
         return signer;
     }
 
@@ -700,10 +651,11 @@ contract PrivatixServiceContract is Ownable {
         if(network_fee > 0) {
             uint192 fee = (_balance/100000)*network_fee; // it's safe because network_fee can't be more than 1000
             internal_balances[network_fee_address] = internal_balances[network_fee_address].add(fee);
-            internal_balances[_agent_address] = internal_balances[_agent_address].add(_balance-fee);
-        } else {
-            internal_balances[_agent_address] = internal_balances[_agent_address].add(_balance);
+            _balance -= fee;
         }
+
+        internal_balances[_agent_address] = internal_balances[_agent_address].add(_balance);
+
         // Send deposit - balance back to Client
         internal_balances[_client_address] = internal_balances[_client_address].add(channel.deposit - _balance);
 
