@@ -131,7 +131,6 @@ contract('PSC', (accounts) => {
                 if(holder.handlers[eventName].reject(error));
             }else{
                 holder.transaction.then(transaction => {
-                    console.log(eventName, transaction, result);
                     // not always, see E7 test
                     // assert.equal(result.transactionHash, transaction.receipt.transactionHash, "hashes must be equal");
                     expect(transaction.logs.some( log =>  log.event === eventName && result.event === eventName)).to.be.true;
@@ -216,12 +215,12 @@ contract('PSC', (accounts) => {
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
 
-    it("E4: registerServiseOffering/LogServiceOfferingCreated event triggering", async () => {
+    it("E4: registerServiseOffering/LogOfferingCreated event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const holder = {};
-        putOnGuard(holder, ["LogServiceOfferingCreated"], psc);
+        putOnGuard(holder, ["LogOfferingCreated"], psc);
 
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
@@ -231,12 +230,12 @@ contract('PSC', (accounts) => {
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
 
-    it("E7: cooperativeClose/LogCooperativeChannelClose&LogServiceOfferingSupplyChanged events triggering", async () => {
+    it("E7: cooperativeClose/LogCooperativeChannelClose&LogOfferingSupplyChanged events triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const holder = {};
-        putOnGuard(holder, ["LogCooperativeChannelClose", "LogServiceOfferingSupplyChanged"], psc);
+        putOnGuard(holder, ["LogCooperativeChannelClose", "LogOfferingSupplyChanged"], psc);
 
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
@@ -642,9 +641,10 @@ contract('PSC', (accounts) => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+20, 'balance of vendor must be 4e8+20');
 
-        gasUsage["psc.extractBalanceProofSignature"] = await psc.extractBalanceProofSignature.estimateGas(vendor, channel.receipt.blockNumber, offering_hash, sum, signedBalanceSig, {from:vendor});
-        gasUsage["psc.extractClosingSignature"] = await psc.extractBalanceProofSignature.estimateGas(client, channel.receipt.blockNumber, offering_hash, sum, signedCloseSig, {from:client});
+        gasUsage["psc.extractSignature (balance)"] = await psc.extractSignature.estimateGas(vendor, channel.receipt.blockNumber, offering_hash, sum, signedBalanceSig, true, {from:vendor});
+        gasUsage["psc.extractSignature (closing)"] = await psc.extractSignature.estimateGas(client, channel.receipt.blockNumber, offering_hash, sum, signedCloseSig, false, {from:client});
         gasUsage["psc.getKey"] = await psc.getKey.estimateGas(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+        gasUsage["psc.balanceOf"] = await psc.balanceOf.estimateGas(client, {from:client});
 
         await skip(challenge_period);
         gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, {from:vendor});
@@ -678,12 +678,12 @@ contract('PSC', (accounts) => {
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
 
-    it("E5: removeServiceOffering/LogServiceOfferingDeleted event triggering", async () => {
+    it("E5: removeServiceOffering/LogOfferingDeleted event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const holder = {};
-        putOnGuard(holder, ["LogServiceOfferingDeleted"], psc);
+        putOnGuard(holder, ["LogOfferingDeleted"], psc);
 
         await prix_token.approve(psc.address, 1e8,{from:vendor});
         await psc.addBalanceERC20(1e8, {from:vendor});
@@ -697,12 +697,12 @@ contract('PSC', (accounts) => {
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
 
-    it("E6: publishServiceOfferingEndpoint/LogServiceOfferingEndpoint event triggering", async () => {
+    it("E6: publishServiceOfferingEndpoint/LogOfferingEndpoint event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const holder = {};
-        putOnGuard(holder, ["LogServiceOfferingEndpoint"], psc);
+        putOnGuard(holder, ["LogOfferingEndpoint"], psc);
 
         await prix_token.approve(psc.address, 1e8,{from:vendor});
         await psc.addBalanceERC20(1e8, {from:vendor});
@@ -718,12 +718,12 @@ contract('PSC', (accounts) => {
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
 
-    it("E8: popupServiceOffering/LogServiceOfferingPopedUp event triggering", async () => {
+    it("E8: popupServiceOffering/LogOfferingPopedUp event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const holder = {};
-        putOnGuard(holder, ["LogServiceOfferingPopedUp"], psc);
+        putOnGuard(holder, ["LogOfferingPopedUp"], psc);
 
         await prix_token.approve(psc.address, 1e8,{from:vendor});
         await psc.addBalanceERC20(1e8, {from:vendor});
@@ -750,8 +750,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        // (2^255+1)*2 mod(2^256) == 2
-        const min_deposit = web3.toBigNumber('0x8000000000000000000000000000000000000000000000000000000000000001');
+        // (2^191+1)*2 mod(2^192) == 2
+        const min_deposit = web3.toBigNumber('0x800000000000000000000000000000000000000000000001');
         chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, min_deposit, 2, {from:vendor}));
         chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 2, 2, {from:vendor}));
  
@@ -1188,10 +1188,31 @@ contract('PSC', (accounts) => {
 
     });
 
-    it("S25 check constructor name", async () => {
+    it("S25: check constructor name", async () => {
 
         assert.equal("function" == typeof psc.PrivatixServiceContract, false, "constructor name not match with contract name which make it like regular function");
 
     });
 
+
+    it("S26: check vendor balance before creating offering", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
+
+        await prix_token.approve(psc.address, 1e8,{from:vendor});
+        await psc.addBalanceERC20(1e8, {from:vendor});
+        chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
+
+    });
+
+    it("U1: psc.balanceOf", async () => {
+
+        await prix_token.approve(psc.address, 1e8,{from:client});
+        await psc.addBalanceERC20(1e8, {from:client});
+        const balance = await psc.balanceOf.call(client, {from:client});
+        assert.equal(balance, 1e8, 'balance must be 1 prix');
+    });
 });
