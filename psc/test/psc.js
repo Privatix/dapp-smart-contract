@@ -155,6 +155,7 @@ contract('PSC', (accounts) => {
         });
     };
 
+
     it("I0a: cooperativeClose, standard use case, 0% fee", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
@@ -1214,5 +1215,29 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:client});
         const balance = await psc.balanceOf.call(client, {from:client});
         assert.equal(balance, 1e8, 'balance must be 1 prix');
+    });
+
+    it("U2: psc.getOfferingSupply", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+
+        const block = await psc.addBalanceERC20(1e8, {from:vendor});
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+
+        const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+
+        const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+
+        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+
+        const supply = await psc.getOfferingSupply(offering_hash);
+
+        assert.equal(supply.toNumber(), 9, 'expected 9 free offering supplies');
+
     });
 });
