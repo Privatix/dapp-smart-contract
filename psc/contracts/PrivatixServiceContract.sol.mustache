@@ -345,6 +345,14 @@ contract PrivatixServiceContract is Ownable {
         );
     }
 
+    function getOfferingSupply(bytes32 offering_hash)
+        external
+        view
+        returns(uint16)
+    {
+        return (service_offering_s[offering_hash].current_supply); // test XXX
+    }
+
     /// @notice Called by Agent to publish service endpoint
     /// @param _client_address The address of Client that sends tokens.
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
