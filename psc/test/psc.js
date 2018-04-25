@@ -78,44 +78,36 @@ contract('PSC', (accounts) => {
 
     const getBalanceSignature = function(reciver, blockNumber, offering_hash, balance, contractAddress){
 
-        const message_hash = abi.soliditySHA3(['bytes32','bytes32'],
-            [abi.soliditySHA3(['string', 'string','string','string','string','string'],['string message_id',
-                'address receiver',
-                'uint32 block_created',
-                'bytes32 offering_hash',
-                'uint192 balance',
-                'address contract']),
-                abi.soliditySHA3(['string','address','uint32', 'bytes32', 'uint192','address'],[
+        const message_hash =
+            abi.soliditySHA3(
+                ['string','address','uint32', 'bytes32', 'uint192','address']
+               ,[
                     'Privatix: sender balance proof signature',
                     reciver,
                     blockNumber,
                     offering_hash,
                     balance,
-                    contractAddress]
-                )]
-        ).toString('hex');
+                    contractAddress
+                ]
+            ).toString('hex');
 
         return message_hash;
     }
 
     const getCloseSignature = function (sender, blockNumber, offering_hash, balance, contractAddress){
-        const message_hash = abi.soliditySHA3(['bytes32','bytes32'],
-            [abi.soliditySHA3(['string','string', 'string','string','string','string'],
-                ['string message_id',
-                'address sender',
-                'uint32 block_created',
-                'bytes32 offering_hash',
-                'uint192 balance',
-                'address contract']),
-                abi.soliditySHA3(['string','address','uint32', 'bytes32', 'uint192','address'],[
+        const message_hash =
+            abi.soliditySHA3(
+                ['string','address','uint32', 'bytes32', 'uint192','address']
+               ,[
                     'Privatix: receiver closing signature',
                     sender,
                     blockNumber,
                     offering_hash,
                     balance,
-                    contractAddress]
-                )]
-        ).toString('hex');
+                    contractAddress
+                ]
+            ).toString('hex');
+
         return message_hash;
     }
 

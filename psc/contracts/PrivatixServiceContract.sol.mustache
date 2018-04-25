@@ -475,22 +475,12 @@ contract PrivatixServiceContract is Ownable {
         bytes32 message_hash =
         keccak256("\x19Ethereum Signed Message:\n32",
             keccak256(
-                keccak256(
-                    'string message_id',
-                    _type ? 'address receiver' : 'address sender',
-                    'uint32 block_created',
-                    'bytes32 offering_hash',
-                    'uint192 balance',
-                    'address contract'
-                ),
-                keccak256(
-                    _type ? 'Privatix: sender balance proof signature' : 'Privatix: receiver closing signature',
-                    _address,
-                    _open_block_number,
-                    _offering_hash,
-                    _balance,
-                    address(this)
-                )
+                _type ? 'Privatix: sender balance proof signature' : 'Privatix: receiver closing signature',
+                _address,
+                _open_block_number,
+                _offering_hash,
+                _balance,
+                address(this)
             )
         );
 
