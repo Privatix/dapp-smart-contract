@@ -236,7 +236,7 @@ contract('PSC', (accounts) => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const holder = {};
-        putOnGuard(holder, ["LogCooperativeChannelClose", "LogOfferingSupplyChanged"], psc);
+        putOnGuard(holder, ["LogCooperativeChannelClose"], psc);
 
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
         const block = await psc.addBalanceERC20(1e8, {from:vendor});

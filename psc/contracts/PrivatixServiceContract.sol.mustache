@@ -106,10 +106,6 @@ contract PrivatixServiceContract is Ownable {
       bytes32 indexed _offering_hash,
       uint32 _open_block_number,
       bytes32 _endpoint_hash);
-    event LogOfferingSupplyChanged(
-      address indexed _agent,
-      bytes32 indexed _offering_hash,
-      uint16 _current_supply);
     event LogOfferingPopedUp(
       address indexed _agent,
       bytes32 indexed _offering_hash);
@@ -532,7 +528,6 @@ contract PrivatixServiceContract is Ownable {
     {{ devTools.throwEventLogOfferingCreated }}
     {{ devTools.throwEventLogOfferingDeleted }}
     {{ devTools.throwEventLogOfferingEndpoint }}
-    {{ devTools.throwEventLogOfferingSupplyChanged }}
     {{ devTools.throwEventLogOfferingPopedUp }}
     {{ devTools.throwEventLogCooperativeChannelClose }}
     {{ devTools.throwEventLogUnCooperativeChannelClose }}
@@ -557,8 +552,6 @@ contract PrivatixServiceContract is Ownable {
       require(service_offering_s[_offering_hash].current_supply+1 <= service_offering_s[_offering_hash].max_supply);
       service_offering_s[_offering_hash].current_supply = service_offering_s[_offering_hash].current_supply+1;
 
-      LogOfferingSupplyChanged(_agent_address, _offering_hash, service_offering_s[_offering_hash].current_supply); // test E7
-
       return true;
     }
 
@@ -577,7 +570,6 @@ contract PrivatixServiceContract is Ownable {
      service_offering_s[_offering_hash].current_supply = service_offering_s[_offering_hash].current_supply-1;
      service_offering_s[_offering_hash].update_block_number = uint32(block.number);
 
-     LogOfferingSupplyChanged(_agent_address, _offering_hash, service_offering_s[_offering_hash].current_supply);
    }
 
     /// @dev Creates a new channel between a Client and a Agent.

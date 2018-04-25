@@ -8,7 +8,6 @@
     "throwEventLogOfferingCreated": "",
     "throwEventLogOfferingDeleted": "",
     "throwEventLogOfferingEndpoint": "",
-    "throwEventLogOfferingSupplyChanged": "",
     "throwEventLogOfferingPopedUp": "",
     "throwEventLogCooperativeChannelClose": "",
     "throwEventLogUnCooperativeChannelClose": ""
