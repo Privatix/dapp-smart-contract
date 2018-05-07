@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import increaseTime, { duration } from 'zeppelin-solidity/test/helpers/increaseTime';
 // import moment from 'moment';
 import * as chai from 'chai';
@@ -144,4 +145,31 @@ app.get('/skip/:blocks', async (req, res) => {
     }
 });
 
-app.listen(config.port, () => console.log(`PSC API server is listening on port ${config.port}`))
+app.listen(config.port, () => console.log(`PSC API server is listening on port ${config.port}`));
+
+const proxy = express();
+proxy.use(bodyParser.json()); // for parsing application/json
+proxy.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+
+const headers = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+};
+
+proxy.post('/', upload.array(), async (req, res) => {
+    const body = Object.assign({}, req.body);
+    fetch('http://127.0.0.1:8545/', {method: 'post', body: JSON.stringify(body), headers})
+        .then(res => {
+            const result = res.json();
+            return result;
+        })
+        .then(json => {
+            objectWalk(json, str => {
+                const res = str.replace(/^0x0+/, '0x');
+                return res === '0x' ? '0x0' : res;
+            });
+            res.json(json);
+        });
+});
+
+proxy.listen(8546, () => console.log(`ganache proxy server is listening on port 8546`))

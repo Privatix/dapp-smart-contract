@@ -38,6 +38,7 @@
     "mocha": "^5.0.1",
     "moment": "^2.18.1",
     "multer": "^1.3.0",
+    "node-fetch": "^2.1.2",
     "solidity-sha3": "^0.4.1",
     "truffle-hdwallet-provider": "0.0.3",
     "web3": "^1.0.0-beta2",
