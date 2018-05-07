@@ -106,12 +106,12 @@ const quantities = ["result", "startingBlock", "currentBlock", "highestBlock", "
 const objectWalk = function(obj, hook) {
     for (let i in obj) {
         if(obj[i] instanceof Object && !(obj[i] instanceof String)){
-            if(quantities.includes[i]) {
-                objectWalk(obj[i], hook);
-            }
+            objectWalk(obj[i], hook);
         }
         if('string' === typeof obj[i] || obj[i] instanceof String){
-            obj[i] = hook(obj[i]);
+            if(quantities.includes[i]) {
+                obj[i] = hook(obj[i]);
+            }
         }
     }
 };
