@@ -27,15 +27,14 @@ module.exports = {
             port: 8545,
             network_id: 15
         },
-        /*
         ropsten:  {
             provider: function() {
                 return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/"+"MwLMPH2wFZ9sIIaQYniQ");
             },
             network_id: 3,
-            gas: 4712388,
+            gas: 4700000
             // from: "0xA5020D791fb405BD2D516A2c0824e5bac0f764B8"
-        }, */
+        },
         // testnet: {
         //     provider: provider,
         //      gasPrice: 200 * 10**8,

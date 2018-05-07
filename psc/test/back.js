@@ -100,6 +100,17 @@ app.get('/getKeys', (req, res) => {
 
 });
 
+const objectWalk = function(obj, hook) {
+    for (let i in obj) {
+        if(obj[i] instanceof Object && !(obj[i] instanceof String)){
+            objectWalk(obj[i], hook);
+        }
+        if('string' === typeof obj[i] || obj[i] instanceof String){
+            obj[i] = hook(obj[i]);
+        }
+    }
+};
+
 app.post('/jsonrpc', upload.array(), async (req, res) => {
     console.log(req.body);
     if(req.body.method && (req.body.method in psc)){
@@ -110,7 +121,11 @@ app.post('/jsonrpc', upload.array(), async (req, res) => {
             }else{
                 result = await psc[req.body.method];
             }
-                res.json({result, id: req.body.id, error: null});
+            objectWalk(result, str => {
+                const res = str.replace(/^0x0+/, '0x');
+                return res === '0x' ? '0x0' : res;
+            });
+            res.json({result, id: req.body.id, error: null});
         }catch(e){
             res.json({result: null, error: e, id: req.body.id});
         }
