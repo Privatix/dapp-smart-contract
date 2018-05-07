@@ -101,10 +101,14 @@ app.get('/getKeys', (req, res) => {
 
 });
 
+const quantities = ["result", "startingBlock", "currentBlock", "highestBlock", "gas", "gasPrice", "value", "nonce", "number", "difficulty", "totalDifficulty", "size", "gasLimit", "gasUsed", "timestamp", "blockNumber", "transactionIndex", "cumulativeGasUsed", "gasUsed", "status", "fromBlock", "toBlock", "logIndex", "priority", "ttl", "expiry", "ttl", "sent", "workProved"];
+
 const objectWalk = function(obj, hook) {
     for (let i in obj) {
         if(obj[i] instanceof Object && !(obj[i] instanceof String)){
-            objectWalk(obj[i], hook);
+            if(quantities.includes[i]) {
+                objectWalk(obj[i], hook);
+            }
         }
         if('string' === typeof obj[i] || obj[i] instanceof String){
             obj[i] = hook(obj[i]);
