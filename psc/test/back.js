@@ -101,7 +101,7 @@ app.get('/getKeys', (req, res) => {
 
 });
 
-const quantities = ["result", "startingBlock", "currentBlock", "highestBlock", "gas", "gasPrice", "value", "nonce", "number", "difficulty", "totalDifficulty", "size", "gasLimit", "gasUsed", "timestamp", "blockNumber", "transactionIndex", "cumulativeGasUsed", "gasUsed", "status", "fromBlock", "toBlock", "logIndex", "priority", "ttl", "expiry", "ttl", "sent", "workProved"];
+const quantities = ["result", "startingBlock", "currentBlock", "highestBlock", "gas", "gasPrice", "value", "nonce", "number", "difficulty", "totalDifficulty", "size", "gasLimit", "gasUsed", "timestamp", "blockNumber", "transactionIndex", "cumulativeGasUsed", "gasUsed", "status", "fromBlock", "toBlock", "logIndex", "priority", "ttl", "expiry", "sent", "workProved"];
 
 const objectWalk = function(obj, hook) {
     for (let i in obj) {
@@ -109,7 +109,7 @@ const objectWalk = function(obj, hook) {
             objectWalk(obj[i], hook);
         }
         if('string' === typeof obj[i] || obj[i] instanceof String){
-            if(quantities.includes[i]) {
+            if(quantities.some(entry => entry === i)) {
                 obj[i] = hook(obj[i]);
             }
         }
@@ -117,7 +117,6 @@ const objectWalk = function(obj, hook) {
 };
 
 app.post('/jsonrpc', upload.array(), async (req, res) => {
-    console.log(req.body);
     if(req.body.method && (req.body.method in psc)){
         try{
             let result;
@@ -161,6 +160,7 @@ const headers = {
 };
 
 proxy.post('/', upload.array(), async (req, res) => {
+    // console.log(req);
     const body = Object.assign({}, req.body);
     fetch('http://127.0.0.1:8545/', {method: 'post', body: JSON.stringify(body), headers})
         .then(res => {
