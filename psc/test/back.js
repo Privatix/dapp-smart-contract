@@ -111,6 +111,12 @@ const objectWalk = function(obj, hook) {
         if('string' === typeof obj[i] || obj[i] instanceof String){
             if(quantities.some(entry => entry === i)) {
                 obj[i] = hook(obj[i]);
+            }else{
+                if(obj[i].substr(0, 2) === '0x'){
+                    if(obj[i].length % 2 === 1){
+                        obj[i] = '0x0' + obj[i].substr(2);
+                    }
+                }
             }
         }
     }
