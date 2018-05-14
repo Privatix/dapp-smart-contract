@@ -20,6 +20,7 @@ Ethereum smart contracts playing fundametal role in Privatix DApp architecture. 
 
 * Token exchange
 * Upgrade to new service contract
+
 To provide additional logic and features, as well as support future upgrades, Privatix will deploy additional smart contract named Privatix Service Contract (hereinafter PSC). PSC contract implements state channels features, service offering discovery, helps to negotiate on service setup, incentivize fair usage and controls supply visibility.Token exchange between Ethereum accounts is done using standard ERC20 transfer mechanism. PTC balances will be used to buy and sell PRIX only, rather then pay for services. To use Privatix services PRIX tokens will be approved for transfer to PSC contract address effectively delegating all operations to PSC contract.
 
 **PSC will be used for:**
@@ -77,14 +78,12 @@ Clone the `dapp-smart-contract` repository using git:
 
 ```
 git clone https://github.com/Privatix/dapp-smart-contract.git
-cd dapp-smart-contract
 git checkout master
 ```
 
 Install dependencies:
 
 ```
-cd psc
 npm install
 ```
 
@@ -97,8 +96,12 @@ npm install -g truffle
 
 ## Running the tests
 
-Tests are run using the following command:
+Install ganache-cli:
+```
+npm install -g ganache-cli
+```
 
+Tests are run using the following command:
 ```
 TARGET=dev npm run test
 ```
@@ -111,7 +114,7 @@ There are two npm scripts for deploy — `npm run deploy` and `npm run ropsten`.
 * `npm run deploy` script deploys contract to local_geth network. Although it seems not much useful it provides information about deploys costs, you can see them in ganache.log.
 * `npm run ropsten` deploys contract into ropsten testnet.
 
-After deploying, abi files are saved to current directory (psc).
+After deploying, abi files are saved to current directory (root of project).
 
 It's necessary to point out which configuration you want to use. Available configurations are:
 

@@ -2,13 +2,10 @@
 build
 dis
 dist
-*/node_modules
 node_modules
-key.pem
 *.swp
 *.log
-*/package-lock.json
+PrivatixServiceContract.sol
 package-lock.json
 *.abi
 xunit.xml
-PrivatixServiceContract.sol
