@@ -78,6 +78,7 @@ Clone the `dapp-smart-contract` repository using git:
 
 ```
 git clone https://github.com/Privatix/dapp-smart-contract.git
+cd dapp-smart-contract
 git checkout master
 ```
 
