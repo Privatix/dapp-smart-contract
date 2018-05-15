@@ -78,44 +78,36 @@ contract('PSC', (accounts) => {
 
     const getBalanceSignature = function(reciver, blockNumber, offering_hash, balance, contractAddress){
 
-        const message_hash = abi.soliditySHA3(['bytes32','bytes32'],
-            [abi.soliditySHA3(['string', 'string','string','string','string','string'],['string message_id',
-                'address receiver',
-                'uint32 block_created',
-                'bytes32 offering_hash',
-                'uint192 balance',
-                'address contract']),
-                abi.soliditySHA3(['string','address','uint32', 'bytes32', 'uint192','address'],[
+        const message_hash =
+            abi.soliditySHA3(
+                ['string','address','uint32', 'bytes32', 'uint192','address']
+               ,[
                     'Privatix: sender balance proof signature',
                     reciver,
                     blockNumber,
                     offering_hash,
                     balance,
-                    contractAddress]
-                )]
-        ).toString('hex');
+                    contractAddress
+                ]
+            ).toString('hex');
 
         return message_hash;
     }
 
     const getCloseSignature = function (sender, blockNumber, offering_hash, balance, contractAddress){
-        const message_hash = abi.soliditySHA3(['bytes32','bytes32'],
-            [abi.soliditySHA3(['string','string', 'string','string','string','string'],
-                ['string message_id',
-                'address sender',
-                'uint32 block_created',
-                'bytes32 offering_hash',
-                'uint192 balance',
-                'address contract']),
-                abi.soliditySHA3(['string','address','uint32', 'bytes32', 'uint192','address'],[
+        const message_hash =
+            abi.soliditySHA3(
+                ['string','address','uint32', 'bytes32', 'uint192','address']
+               ,[
                     'Privatix: receiver closing signature',
                     sender,
                     blockNumber,
                     offering_hash,
                     balance,
-                    contractAddress]
-                )]
-        ).toString('hex');
+                    contractAddress
+                ]
+            ).toString('hex');
+
         return message_hash;
     }
 
@@ -154,6 +146,7 @@ contract('PSC', (accounts) => {
             holder.promises.push(res);
         });
     };
+
 
     it("I0a: cooperativeClose, standard use case, 0% fee", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -235,7 +228,7 @@ contract('PSC', (accounts) => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const holder = {};
-        putOnGuard(holder, ["LogCooperativeChannelClose", "LogOfferingSupplyChanged"], psc);
+        putOnGuard(holder, ["LogCooperativeChannelClose"], psc);
 
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
@@ -1214,5 +1207,29 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:client});
         const balance = await psc.balanceOf.call(client, {from:client});
         assert.equal(balance, 1e8, 'balance must be 1 prix');
+    });
+
+    it("U2: psc.getOfferingSupply", async () => {
+
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+
+        const block = await psc.addBalanceERC20(1e8, {from:vendor});
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+
+        const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+
+        const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+
+        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+
+        const supply = await psc.getOfferingSupply(offering_hash);
+
+        assert.equal(supply.toNumber(), 9, 'expected 9 free offering supplies');
+
     });
 });
