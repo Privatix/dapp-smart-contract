@@ -1,4 +1,4 @@
-import increaseTime, { duration } from 'zeppelin-solidity/test/helpers/increaseTime';
+import increaseTime, { duration } from 'openzeppelin-solidity/test/helpers/increaseTime';
 // import moment from 'moment';
 import * as chai from 'chai';
 const config = require(`../targets/${process.env.TARGET}.json`);
