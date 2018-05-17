@@ -3,8 +3,13 @@ require('babel-register')({
     // Ignore everything in node_modules except node_modules/zeppelin-solidity.
     presets: ["es2015"],
     plugins: ["syntax-async-functions","transform-regenerator"],
-    ignore: /node_modules\/(?!zeppelin-solidity)/,
+    ignore: /node_modules\/(?!openzeppelin-solidity)/,
 });
+
+const HDWalletProvider = require('truffle-hdwallet-provider')
+
+var mnemonic = "language core disease beach celery media mercy ready thing course modify fall lady bag carry";
+
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -22,7 +27,22 @@ module.exports = {
             port: 8545,
             network_id: 15
         },
-
+        ropsten:  {
+            provider: function() {
+                return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/"+"MwLMPH2wFZ9sIIaQYniQ");
+            },
+            network_id: 3,
+            gas: 4712388,
+            // from: "0xA5020D791fb405BD2D516A2c0824e5bac0f764B8"
+        },
+        rinkeby:  {
+            provider: function() {
+                return new HDWalletProvider(mnemonic, "https://rinkeby.infura.io/"+"MwLMPH2wFZ9sIIaQYniQ");
+            },
+            network_id: 4,
+            gas: 7000000,
+            // from: "0xA5020D791fb405BD2D516A2c0824e5bac0f764B8"
+        },
         // testnet: {
         //     provider: provider,
         //      gasPrice: 200 * 10**8,
@@ -37,5 +57,8 @@ module.exports = {
             gasPrice: 0x01      // <-- Use this low gas price 
         },
     },
-    build: "webpack"
+    build: "webpack",
+    mocha: {
+        reporter: "xunit-file"
+    }
 };

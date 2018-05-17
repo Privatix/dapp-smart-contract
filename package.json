@@ -1,5 +1,5 @@
 {
-  "name": "micropay",
+  "name": "PrivatixSmartContract",
   "version": "1.0.0",
   "description": "",
   "main": "truffle.js",
@@ -12,6 +12,7 @@
     "back": "ganache-cli > ./ganache.log 2>&1 & truffle test ./test/back.js --compile-all --network local_geth &",
     "deploy": "ganache-cli > ./ganache.log 2>&1 & truffle migrate --network local_geth",
     "ropsten": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && TARGET=${TARGET} truffle migrate --network ropsten",
+    "rinkeby": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && TARGET=${TARGET} truffle migrate --network rinkeby",
     "dev": "mustache targets/dev.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && npm run back",
     "stop": "sudo kill -9 $(lsof -ti :8545) && sudo kill -9 $(lsof -ti :5000)",
     "env": "echo $TARGET"
@@ -41,7 +42,7 @@
     "solidity-sha3": "^0.4.1",
     "truffle-hdwallet-provider": "0.0.3",
     "web3": "^1.0.0-beta2",
-    "zeppelin-solidity": "^1.7.0"
+    "openzeppelin-solidity": "^1.9.0"
   },
   "babel": {
     "babelrc": true,
