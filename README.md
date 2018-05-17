@@ -113,7 +113,7 @@ Available targets you can see in `targets` directory. Setting the environment va
 There are three npm scripts for deploy — `npm run deploy`, `npm run ropsten` and `npm run rinkeby`.
 
 * `npm run deploy` script deploys contract to local_geth network. Although it seems not much useful it provides information about deploys costs, you can see them in ganache.log.
-* `npm run ropsten` deploys contract into ropsten testnet. Becouse of ropsten's gas limit (4.7m) you can't deploy develop version of contract (target=dev).
+* `npm run ropsten` deploys contract into ropsten testnet. Because of ropsten's gas limit (4.7m) you can't deploy develop version of contract (target=dev).
 * `npm run rinkeby` deploys contract into rinkeby testnet. Rinkeby's gas limit is much more (~7m) wich makes possible deploy develop version of contract.
 
 After deploying, abi files are saved to current directory (root of project).
