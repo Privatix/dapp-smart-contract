@@ -5,7 +5,7 @@
 <img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES">
 
 [develop](https://github.com/Privatix/dapp-smart-contract/tree/develop):
-<img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES3">
+<img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES23">
 
 # Privatix Service Contract
 
