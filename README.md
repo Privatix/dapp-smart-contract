@@ -5,7 +5,7 @@
 <img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES">
 
 [develop](https://github.com/Privatix/dapp-smart-contract/tree/develop):
-<img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES3">
+<img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES23">
 
 # Privatix Service Contract
 
@@ -20,6 +20,7 @@ Ethereum smart contracts playing fundametal role in Privatix DApp architecture. 
 
 * Token exchange
 * Upgrade to new service contract
+
 To provide additional logic and features, as well as support future upgrades, Privatix will deploy additional smart contract named Privatix Service Contract (hereinafter PSC). PSC contract implements state channels features, service offering discovery, helps to negotiate on service setup, incentivize fair usage and controls supply visibility.Token exchange between Ethereum accounts is done using standard ERC20 transfer mechanism. PTC balances will be used to buy and sell PRIX only, rather then pay for services. To use Privatix services PRIX tokens will be approved for transfer to PSC contract address effectively delegating all operations to PSC contract.
 
 **PSC will be used for:**
@@ -84,7 +85,6 @@ git checkout master
 Install dependencies:
 
 ```
-cd psc
 npm install
 ```
 
@@ -97,27 +97,33 @@ npm install -g truffle
 
 ## Running the tests
 
-Tests are run using the following command:
-
+Install ganache-cli:
 ```
-TARGET=dev npm run test
+npm install -g ganache-cli
+```
+
+Tests are run using the following command:
+```
+TARGET=test npm run test
 ```
 Available targets you can see in `targets` directory. Setting the environment variable may differ on your system.
 
 # Deploy
 
-There are two npm scripts for deploy — `npm run deploy` and `npm run ropsten`.
+There are three npm scripts for deploy — `npm run deploy`, `npm run ropsten` and `npm run rinkeby`.
 
 * `npm run deploy` script deploys contract to local_geth network. Although it seems not much useful it provides information about deploys costs, you can see them in ganache.log.
-* `npm run ropsten` deploys contract into ropsten testnet.
+* `npm run ropsten` deploys contract into ropsten testnet. Because of ropsten's gas limit (4.7m) you can't deploy develop version of contract (target=dev).
+* `npm run rinkeby` deploys contract into rinkeby testnet. Rinkeby's gas limit is much more (~7m) wich makes possible deploy develop version of contract.
 
-After deploying, abi files are saved to current directory (psc).
+After deploying, abi files are saved to current directory (root of project).
 
 It's necessary to point out which configuration you want to use. Available configurations are:
 
 * `dev`
 * `test`
 * `ropsten`
+* `rinkeby`
 
 You can see them in `targets` directory. Of course, you can add your own configuration.
 

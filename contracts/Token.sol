@@ -1,11 +1,12 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
-import 'zeppelin-solidity/contracts/token/MintableToken.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/MintableToken.sol';
 
-contract Token2 is MintableToken {
 
-    string public constant name = 'Privatix v2';
-    string public constant symbol = 'PRIXv2';
+contract Token is MintableToken {
+
+    string public constant name = 'Privatix';
+    string public constant symbol = 'PRIX';
     uint8 public constant decimals = 8;
     
     function transferFrom(address from, address to, uint256 value) returns (bool) {
