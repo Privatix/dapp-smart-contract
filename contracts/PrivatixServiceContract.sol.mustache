@@ -642,8 +642,9 @@ contract PrivatixServiceContract is Ownable {
 
         require(increaseOfferingSupply(_agent_address, _offering_hash));
         // Send _balance to the receiver, as it is always <= deposit
+        uint192 fee = 0;
         if(network_fee > 0) {
-            uint192 fee = (_balance/100000)*network_fee; // it's safe because network_fee can't be more than 1000
+            fee = (_balance/100000)*network_fee; // it's safe because network_fee can't be more than 1000
             internal_balances[network_fee_address] = internal_balances[network_fee_address].add(fee);
             _balance -= fee;
         }
@@ -651,7 +652,7 @@ contract PrivatixServiceContract is Ownable {
         internal_balances[_agent_address] = internal_balances[_agent_address].add(_balance);
 
         // Send deposit - balance back to Client
-        internal_balances[_client_address] = internal_balances[_client_address].add(channel.deposit - _balance);
+        internal_balances[_client_address] = internal_balances[_client_address].add(channel.deposit - _balance - fee); // I4 test
 
     }
 

@@ -545,6 +545,57 @@ contract('PSC', (accounts) => {
  
     });
 
+    it('I4: settle, balances checking', async () => {
+        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
+
+        const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
+
+        const block = await psc.addBalanceERC20(1e8, {from:vendor});
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+
+        await psc.setNetworkFee(500, {from: owner})
+
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
+
+        const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
+        gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
+
+        const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
+        gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
+
+        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
+        const channel = await psc.createChannel(vendor, offering_hash, 300000, authentication_hash, {from:client});
+        gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
+
+        const sum = 200000;
+        const uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
+        gasUsage["psc.uncooperativeClose"] = uClose.receipt.gasUsed;
+
+        await skip(challenge_period);
+        gasUsage['ownerBefore'] = (await psc.internal_balances(owner)).toNumber();
+        gasUsage['vendorBefore'] = (await psc.internal_balances(vendor)).toNumber();
+        gasUsage['clientBefore'] = (await psc.internal_balances(client)).toNumber();
+
+        const settle = await psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
+        gasUsage["psc.settle"] = settle.receipt.gasUsed;
+
+        gasUsage['ownerAfter'] = (await psc.internal_balances(owner)).toNumber();
+        gasUsage['vendorAfter'] = (await psc.internal_balances(vendor)).toNumber();
+        gasUsage['clientAfter'] = (await psc.internal_balances(client)).toNumber();
+
+        const fee = gasUsage['ownerAfter'] - gasUsage['ownerBefore'];
+        const vendorBonus = gasUsage['vendorAfter'] - gasUsage['vendorBefore'];
+        const clientRest = gasUsage['clientAfter'] - gasUsage['clientBefore'];
+
+        assert.equal(fee, 1000, 'fee must be 1000');
+        assert.equal(vendorBonus, 200000 - 1000, 'vendor bonus must be 199000');
+        assert.equal(clientRest, 100000, 'rest of client must be 100000');
+
+    });
+
     it('E3: uncooperativeClose/LogChannelCloseRequested event triggering', async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -1232,4 +1283,5 @@ contract('PSC', (accounts) => {
         assert.equal(supply.toNumber(), 9, 'expected 9 free offering supplies');
 
     });
+
 });
