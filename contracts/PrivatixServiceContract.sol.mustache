@@ -135,7 +135,7 @@ contract PrivatixServiceContract is Ownable {
     /// @param _challenge_period A fixed number of blocks representing the challenge period.
     /// We enforce a minimum of 500 blocks waiting period.
     /// after a sender requests the closing of the channel without the receiver's signature.
-    function PrivatixServiceContract(
+    constructor(
       address _token_address,
       address _network_fee_address,
       uint32 _challenge_period
@@ -204,7 +204,7 @@ contract PrivatixServiceContract is Ownable {
         decreaseOfferingSupply(_agent_address, _offering_hash);
         createChannelPrivate(msg.sender, _agent_address, _offering_hash, _deposit);
         internal_balances[msg.sender] = internal_balances[msg.sender].sub(_deposit); //test S5
-        LogChannelCreated(_agent_address, msg.sender, _offering_hash, _deposit, _authentication_hash); //test E1
+        emit LogChannelCreated(_agent_address, msg.sender, _offering_hash, _deposit, _authentication_hash); //test E1
     }
 
     /// @notice Increase the channel deposit with `_added_deposit`.
@@ -258,7 +258,7 @@ contract PrivatixServiceContract is Ownable {
 
         // Both signatures have been verified and the channel can be settled.
         settleChannel(sender, receiver, _open_block_number, _offering_hash, _balance);
-        LogCooperativeChannelClose(receiver, sender, _offering_hash, _open_block_number, _balance); // test E7
+        emit LogCooperativeChannelClose(receiver, sender, _offering_hash, _open_block_number, _balance); // test E7
     }
 
     /// @notice Client requests the closing of the channel and starts the challenge period.
@@ -286,7 +286,7 @@ contract PrivatixServiceContract is Ownable {
         require(closing_requests[key].settle_block_number > block.number);
         closing_requests[key].closing_balance = _balance;
 
-        LogChannelCloseRequested(_agent_address, msg.sender, _offering_hash, _open_block_number, _balance); // test E3
+        emit LogChannelCloseRequested(_agent_address, msg.sender, _offering_hash, _open_block_number, _balance); // test E3
     }
 
 
@@ -309,7 +309,7 @@ contract PrivatixServiceContract is Ownable {
            closing_requests[key].closing_balance
         );
 
-        LogUnCooperativeChannelClose(_agent_address, msg.sender, _offering_hash,
+        emit LogUnCooperativeChannelClose(_agent_address, msg.sender, _offering_hash,
            _open_block_number, closing_requests[key].closing_balance
         ); // test E9
     }
@@ -363,7 +363,7 @@ contract PrivatixServiceContract is Ownable {
      external
     {
       require(service_offering_s[_offering_hash].agent_address == msg.sender); // test S12
-      LogOfferingEndpoint(msg.sender, _client_address, _offering_hash, _open_block_number, _endpoint_hash); // test E6
+      emit LogOfferingEndpoint(msg.sender, _client_address, _offering_hash, _open_block_number, _endpoint_hash); // test E6
     }
 
 
@@ -393,7 +393,7 @@ contract PrivatixServiceContract is Ownable {
       // Service vendor internal balance must be not less then _min_deposit * _max_supply
       internal_balances[msg.sender] = internal_balances[msg.sender].sub(_min_deposit.mul(_max_supply)); // test S26
 
-      LogOfferingCreated(msg.sender, _offering_hash, _min_deposit, _max_supply); // test E4
+      emit LogOfferingCreated(msg.sender, _offering_hash, _min_deposit, _max_supply); // test E4
 
       return true;
     }
@@ -418,7 +418,7 @@ contract PrivatixServiceContract is Ownable {
       // this flag marks offering as deleted
       service_offering_s[_offering_hash].isActive = false;
 
-      LogOfferingDeleted(msg.sender, _offering_hash); // test E5
+      emit LogOfferingDeleted(msg.sender, _offering_hash); // test E5
 
       return true;
     }
@@ -438,7 +438,7 @@ contract PrivatixServiceContract is Ownable {
 
       service_offering_s[_offering_hash].update_block_number = uint32(block.number);
 
-      LogOfferingPopedUp(msg.sender, _offering_hash); // test E8
+      emit LogOfferingPopedUp(msg.sender, _offering_hash); // test E8
 
       return true;
     }
@@ -610,7 +610,7 @@ contract PrivatixServiceContract is Ownable {
         channels[key].deposit += _added_deposit;
         assert(channels[key].deposit > _added_deposit);
 
-        LogChannelToppedUp(_agent_address, _client_address, _offering_hash, _open_block_number, _added_deposit); // test E2
+        emit LogChannelToppedUp(_agent_address, _client_address, _offering_hash, _open_block_number, _added_deposit); // test E2
     }
 
     /// @dev Deletes the channel and settles by transfering the balance to the Agent
