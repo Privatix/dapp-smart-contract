@@ -147,7 +147,7 @@ contract('PSC', (accounts) => {
         });
     };
 
-/*
+
     it("I0a: cooperativeClose, standard use case, 0% fee", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
@@ -595,7 +595,7 @@ contract('PSC', (accounts) => {
         assert.equal(clientRest, 100000, 'rest of client must be 100000');
 
     });
-*/
+
     it("I5: increase offering suppply", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -613,7 +613,7 @@ contract('PSC', (accounts) => {
         chaiAssert.isRejected(psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client}));
 
     });
-/*
+
     it('E3: uncooperativeClose/LogChannelCloseRequested event triggering', async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -1301,5 +1301,5 @@ contract('PSC', (accounts) => {
         assert.equal(supply.toNumber(), 9, 'expected 9 free offering supplies');
 
     });
-*/
+
 });
