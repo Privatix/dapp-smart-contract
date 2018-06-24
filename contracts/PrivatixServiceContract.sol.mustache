@@ -539,7 +539,7 @@ contract PrivatixServiceContract is Ownable {
       // saving gas, as no need to update state
       if(!service_offering_s[_offering_hash].isActive) return true;
 
-      require(service_offering_s[_offering_hash].current_supply+1 <= service_offering_s[_offering_hash].max_supply);
+      require(service_offering_s[_offering_hash].current_supply < service_offering_s[_offering_hash].max_supply);
       service_offering_s[_offering_hash].current_supply = service_offering_s[_offering_hash].current_supply+1;
 
       return true;
@@ -555,7 +555,7 @@ contract PrivatixServiceContract is Ownable {
    {
      require(service_offering_s[_offering_hash].isActive);
      require(service_offering_s[_offering_hash].agent_address == _agent_address);
-     require(service_offering_s[_offering_hash].current_supply-1 >= 0);
+     require(service_offering_s[_offering_hash].current_supply > 0); // test I5
 
      service_offering_s[_offering_hash].current_supply = service_offering_s[_offering_hash].current_supply-1;
      service_offering_s[_offering_hash].update_block_number = uint32(block.number);
