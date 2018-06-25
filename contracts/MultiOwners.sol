@@ -8,7 +8,7 @@ contract MultiOwners {
     
     mapping(address => bool) owners;
 
-    function MultiOwners() {
+    constructor() public {
         owners[msg.sender] = true;
     }
 
@@ -17,23 +17,23 @@ contract MultiOwners {
         _; 
     }
 
-    function isOwner() constant returns (bool) {
+    function isOwner() constant public returns (bool) {
         return owners[msg.sender] ? true : false;
     }
 
-    function checkOwner(address maybe_owner) constant returns (bool) {
+    function checkOwner(address maybe_owner) constant public returns (bool) {
         return owners[maybe_owner] ? true : false;
     }
 
 
-    function grant(address _owner) onlyOwner {
+    function grant(address _owner) public onlyOwner {
         owners[_owner] = true;
-        AccessGrant(_owner);
+        emit AccessGrant(_owner);
     }
 
-    function revoke(address _owner) onlyOwner {
+    function revoke(address _owner) public onlyOwner {
         require(msg.sender != _owner);
         owners[_owner] = false;
-        AccessRevoke(_owner);
+        emit AccessRevoke(_owner);
     }
 }
