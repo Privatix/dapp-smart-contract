@@ -60,7 +60,7 @@ contract Sale is MultiOwners {
         _;        
     }
 
-    function Sale(uint256 _startTime, address _wallet) {
+    constructor(uint256 _startTime, address _wallet) public {
         require(_startTime >=  now);
         require(_wallet != 0x0);
 
@@ -80,7 +80,7 @@ contract Sale is MultiOwners {
     /*
      * @dev fallback for processing ether
      */
-    function() payable {
+    function() public payable {
         return buyTokens(msg.sender);
     }
 
@@ -96,7 +96,7 @@ contract Sale is MultiOwners {
         //require(minPrixByTrans <= amount && maxPrixByTrans >= amount);
 
         token.mint(contributor, amount);
-        TokenPurchase(contributor, msg.value, amount);
+        emit TokenPurchase(contributor, msg.value, amount);
     }
 
     function getFreeTokens(address contributor, uint256 amount) public {
@@ -106,7 +106,7 @@ contract Sale is MultiOwners {
         require(minFreePrixByTrans <= amount && maxFreePrixByTrans >= amount);
 
         token.mint(contributor, amount);
-        TokenPurchase(contributor, amount, 0);
+        emit TokenPurchase(contributor, amount, 0);
     }
 
     // @return true if crowdsale event has ended
