@@ -5,7 +5,7 @@ const ERC20 = artifacts.require("./ERC20.sol");
 // const SafeMath = artifacts.require("zeppelin-solidity/contracts/math/SafeMath.sol");
 const SafeMath192 = artifacts.require("./lib/SafeMath192.sol");
 const ECVerify = artifacts.require("./lib/ECVerify.sol");
-const Ownable = artifacts.require("zeppelin-solidity/contracts/ownership/Ownable.sol");
+const Ownable = artifacts.require("openzeppelin-solidity/contracts/ownership/Ownable.sol");
 
 const MultiOwners = artifacts.require("MultiOwners.sol");
 
@@ -29,6 +29,7 @@ module.exports = async function(deployer, network, accounts) {
 
     const deploy = function(tokenContract){
         tokenContract.token().then(function(token){
+            save(JSON.stringify(token, null, '\t'), "./token.json");
             deployer.deploy(PSC, token, accounts[0], config.challengePeriod).then(saveAbi);
         });
     };
