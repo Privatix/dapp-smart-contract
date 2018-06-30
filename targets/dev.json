@@ -11,5 +11,6 @@
     "throwEventLogOfferingPopedUp": "function throwEventLogOfferingPopedUp(address _agent_address, bytes32 _offering_hash) public {emit LogOfferingPopedUp(_agent_address, _offering_hash);}",
     "throwEventLogCooperativeChannelClose": "function throwEventLogCooperativeChannelClose(address _agent_address, address _client_address, bytes32 _offering_hash, uint32 _open_block_number, uint192 _balance) public {emit LogCooperativeChannelClose(_agent_address, _client_address, _offering_hash, _open_block_number, _balance);}",
     "throwEventLogUnCooperativeChannelClose": "function throwEventLogUnCooperativeChannelClose(address _agent_address, address _client_address, bytes32 _offering_hash, uint32 _open_block_number, uint192 _balance) public {emit LogUnCooperativeChannelClose(_agent_address, _client_address, _offering_hash, _open_block_number, _balance);}"
-  }
+  },
+  "saleAddress": "0x4d15c86c78128a6e216615f4345dfe32fb43181d"
 }

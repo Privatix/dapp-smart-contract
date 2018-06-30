@@ -304,13 +304,13 @@ contract PrivatixServiceContract is Ownable {
 
         // Make sure the challenge_period has ended
 	    require(block.number > closing_requests[key].settle_block_number); // test S8
-
+        uint192 balance = closing_requests[key].closing_balance;
         settleChannel(msg.sender, _agent_address, _open_block_number, _offering_hash,
            closing_requests[key].closing_balance
         );
 
         emit LogUnCooperativeChannelClose(_agent_address, msg.sender, _offering_hash,
-           _open_block_number, closing_requests[key].closing_balance
+           _open_block_number, balance
         ); // test E9
     }
 

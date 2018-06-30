@@ -9,3 +9,5 @@ PrivatixServiceContract.sol
 package-lock.json
 *.abi
 xunit.xml
+
+*.iml
