@@ -341,12 +341,14 @@ contract PrivatixServiceContract is Ownable {
         );
     }
 
-    function getOfferingSupply(bytes32 offering_hash)
+    function getOfferingInfo(bytes32 offering_hash)
         external
         view
-        returns(uint16)
+        returns(uint192, address, uint16, uint16, uint32, bool)
     {
-        return (service_offering_s[offering_hash].current_supply); // test U2
+        ServiceOffering memory offering = service_offering_s[offering_hash];
+        return (offering.min_deposit, offering.agent_address, offering.max_supply, offering.current_supply, offering.update_block_number, offering.isActive);
+        // test U2
     }
 
     /// @notice Called by Agent to publish service endpoint
@@ -444,7 +446,6 @@ contract PrivatixServiceContract is Ownable {
     }
 
     /// @notice Returns the sender address extracted from the balance proof or closing signature.
-    /// dev Works with eth_signTypedData https://github.com/ethereum/EIPs/pull/712.
     /// @param _address The address of Agent or Client that receives/sends tokens.
     /// @param _open_block_number The block number at which a channel between the
     /// Client and Agent was created.
@@ -534,12 +535,12 @@ contract PrivatixServiceContract is Ownable {
       private
       returns (bool done)
     {
+      require(service_offering_s[_offering_hash].current_supply < service_offering_s[_offering_hash].max_supply);
       // Verify that Agent owns this offering
       require(service_offering_s[_offering_hash].agent_address == _agent_address);
       // saving gas, as no need to update state
       if(!service_offering_s[_offering_hash].isActive) return true;
 
-      require(service_offering_s[_offering_hash].current_supply < service_offering_s[_offering_hash].max_supply);
       service_offering_s[_offering_hash].current_supply = service_offering_s[_offering_hash].current_supply+1;
 
       return true;

@@ -1278,7 +1278,7 @@ contract('PSC', (accounts) => {
         assert.equal(balance, 1e8, 'balance must be 1 prix');
     });
 
-    it("U2: psc.getOfferingSupply", async () => {
+    it("U2: psc.getOfferingInfo", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
@@ -1296,9 +1296,8 @@ contract('PSC', (accounts) => {
         const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
         const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
 
-        const supply = await psc.getOfferingSupply(offering_hash);
-
-        assert.equal(supply.toNumber(), 9, 'expected 9 free offering supplies');
+        const retrievedOffering = await psc.getOfferingInfo(offering_hash);
+        assert.equal(retrievedOffering[3].toNumber(), 9, 'expected 9 free offering supplies');
 
     });
 
