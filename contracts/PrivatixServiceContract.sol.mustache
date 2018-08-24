@@ -344,10 +344,10 @@ contract PrivatixServiceContract is Ownable {
     function getOfferingInfo(bytes32 offering_hash)
         external
         view
-        returns(uint192, address, uint16, uint16, uint32, bool)
+        returns(address, uint192, uint16, uint16, uint32, bool)
     {
         ServiceOffering memory offering = service_offering_s[offering_hash];
-        return (offering.min_deposit, offering.agent_address, offering.max_supply, offering.current_supply, offering.update_block_number, offering.isActive);
+        return (offering.agent_address, offering.min_deposit, offering.max_supply, offering.current_supply, offering.update_block_number, offering.isActive);
         // test U2
     }
 
