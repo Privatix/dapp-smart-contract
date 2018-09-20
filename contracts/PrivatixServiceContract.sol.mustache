@@ -47,8 +47,7 @@ contract PrivatixServiceContract is Ownable {
       address agent_address; //bytes20 - Address of Agent.
       uint16 max_supply; // bytes2 - Maximum supply of services according to service offerings.
       uint16 current_supply; // bytes2 - Currently remianing available supply.
-      uint32 update_block_number; //bytes4 - Last block number when service offering was created, poped-up or channel opened.
-      bool isActive; // byte - Flag, shows SO is empty/created/deleted.
+      uint32 update_block_number; //bytes4 - Last block number when service offering was created, poped-up or channel opened. If 0 - offering was removed.
     }
 
     // 24 bytes (deposit) + 4 bytes (block number)
@@ -351,10 +350,10 @@ contract PrivatixServiceContract is Ownable {
     function getOfferingInfo(bytes32 offering_hash)
         external
         view
-        returns(address, uint192, uint16, uint16, uint32, bool)
+        returns(address, uint192, uint16, uint16, uint32)
     {
         ServiceOffering memory offering = service_offering_s[offering_hash];
-        return (offering.agent_address, offering.min_deposit, offering.max_supply, offering.current_supply, offering.update_block_number, offering.isActive);
+        return (offering.agent_address, offering.min_deposit, offering.max_supply, offering.current_supply, offering.update_block_number);
         // test U2
     }
 
@@ -396,7 +395,7 @@ contract PrivatixServiceContract is Ownable {
       require(_min_deposit.mul(_max_supply) < channel_deposit_bugbounty_limit); //Agent deposit greater than max allowed, test S1
       require(_min_deposit > 0); // zero deposit is not allowed, test S3
 
-      service_offering_s[_offering_hash] = ServiceOffering(_min_deposit, msg.sender, _max_supply, _max_supply, uint32(block.number), true);
+      service_offering_s[_offering_hash] = ServiceOffering(_min_deposit, msg.sender, _max_supply, _max_supply, uint32(block.number));
 
       // Substitute deposit amount for each offering slot from agent's internal balance
       // Service vendor internal balance must be not less then _min_deposit * _max_supply
@@ -415,7 +414,7 @@ contract PrivatixServiceContract is Ownable {
      public
      returns(bool success)
     {
-      require(service_offering_s[_offering_hash].isActive); // test S13
+      require(service_offering_s[_offering_hash].update_block_number > 0); // test S13
       // only creator can delete his offering
       assert(service_offering_s[_offering_hash].agent_address == msg.sender); // test S14
       // At least remove_period blocks were mined after last offering structure update
@@ -425,7 +424,7 @@ contract PrivatixServiceContract is Ownable {
         service_offering_s[_offering_hash].min_deposit * service_offering_s[_offering_hash].max_supply
       );
       // this flag marks offering as deleted
-      service_offering_s[_offering_hash].isActive = false;
+      service_offering_s[_offering_hash].update_block_number = 0;
 
       emit LogOfferingDeleted(msg.sender, _offering_hash); // test E5
 
@@ -546,7 +545,7 @@ contract PrivatixServiceContract is Ownable {
       // Verify that Agent owns this offering
       require(service_offering_s[_offering_hash].agent_address == _agent_address);
       // saving gas, as no need to update state
-      if(!service_offering_s[_offering_hash].isActive) return true;
+      if(service_offering_s[_offering_hash].update_block_number == 0) return true;
 
       service_offering_s[_offering_hash].current_supply = service_offering_s[_offering_hash].current_supply+1;
 
@@ -561,7 +560,7 @@ contract PrivatixServiceContract is Ownable {
     function decreaseOfferingSupply(address _agent_address, bytes32 _offering_hash)
      private
    {
-     require(service_offering_s[_offering_hash].isActive);
+     require(service_offering_s[_offering_hash].update_block_number > 0);
      require(service_offering_s[_offering_hash].agent_address == _agent_address);
      require(service_offering_s[_offering_hash].current_supply > 0); // test I5
 
