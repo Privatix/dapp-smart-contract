@@ -566,7 +566,6 @@ contract PrivatixServiceContract is Ownable {
      require(service_offering_s[_offering_hash].current_supply > 0); // test I5
 
      service_offering_s[_offering_hash].current_supply = service_offering_s[_offering_hash].current_supply-1;
-     service_offering_s[_offering_hash].update_block_number = uint32(block.number);
 
    }
 
