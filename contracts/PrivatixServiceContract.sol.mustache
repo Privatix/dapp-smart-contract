@@ -13,13 +13,16 @@ contract PrivatixServiceContract is Ownable {
      *  Data structures
      */
 
+
+    uint32 public popup_period;
+
     // 1) Number of blocks to wait from an uncooperativeClose initiated by the Client
     // in order to give the Agent a chance to respond with a balance proof
-    // in case the sender cheats. After the challenge period, the sender can settle
+    // in case the sender cheats. After the remove period, the sender can settle
     // and delete the channel.
     // 2) Number of blocks Agent will wait from registerServiceOffering or from createChannel before
     // he can delete service offering and recieve Agent's deposit back.
-    uint32 public challenge_period;
+    uint32 public remove_period;
 
     // Contract semantic version
     string public constant meta_version = '0.1.0';
@@ -66,7 +69,7 @@ contract PrivatixServiceContract is Ownable {
         // Number of tokens owed by the Client when closing the channel.
         uint192 closing_balance;
 
-        // Block number at which the challenge period ends, in case it has been initiated.
+        // Block number at which the remove period ends, in case it has been initiated.
         uint32 settle_block_number;
     }
 
@@ -132,18 +135,21 @@ contract PrivatixServiceContract is Ownable {
 
     /// @notice Constructor for creating the Privatix Service Contract.
     /// @param _token_address The address of the PTC (Privatix Token Contract)
-    /// @param _challenge_period A fixed number of blocks representing the challenge period.
+    /// @param _popup_period A fixed number of blocks representing the popup period.
+    /// @param _remove_period A fixed number of blocks representing the remove period.
     /// We enforce a minimum of 500 blocks waiting period.
     /// after a sender requests the closing of the channel without the receiver's signature.
     constructor(
       address _token_address,
       address _network_fee_address,
-      uint32 _challenge_period
+      uint32 _popup_period,
+      uint32 _remove_period
       ) public {
         require(_token_address != 0x0);
         require(addressHasCode(_token_address));
         require(_network_fee_address != 0x0);
-        require(_challenge_period >= {{ challengePeriod }});
+        require(_remove_period >= {{ remove_period }});
+        require(_popup_period >= {{ popup_period }});
 
         token = ERC20(_token_address);
 
@@ -151,7 +157,8 @@ contract PrivatixServiceContract is Ownable {
         require(token.totalSupply() > 0);
 
         network_fee_address = _network_fee_address;
-        challenge_period = _challenge_period;
+        popup_period = _popup_period;
+        remove_period = _remove_period;
 
     }
 
@@ -261,7 +268,7 @@ contract PrivatixServiceContract is Ownable {
         emit LogCooperativeChannelClose(receiver, sender, _offering_hash, _open_block_number, _balance); // test E7
     }
 
-    /// @notice Client requests the closing of the channel and starts the challenge period.
+    /// @notice Client requests the closing of the channel and starts the remove period.
     /// This can only happen once.
     /// @param _agent_address The address of Agent that receives tokens.
     /// @param _open_block_number The block number at which a channel between
@@ -282,7 +289,7 @@ contract PrivatixServiceContract is Ownable {
         require(_balance <= channels[key].deposit); // test S11
 
         // Mark channel as closed
-        closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
+        closing_requests[key].settle_block_number = uint32(block.number) + remove_period;
         require(closing_requests[key].settle_block_number > block.number);
         closing_requests[key].closing_balance = _balance;
 
@@ -290,7 +297,7 @@ contract PrivatixServiceContract is Ownable {
     }
 
 
-    /// @notice Function called by the Client after the challenge period has ended, in order to
+    /// @notice Function called by the Client after the remove period has ended, in order to
     /// settle and delete the channel, in case the Agent has not closed the channel himself.
     /// @param _agent_address The address of Agent that receives tokens.
     /// @param _open_block_number The block number at which a channel between
@@ -302,7 +309,7 @@ contract PrivatixServiceContract is Ownable {
         // Make sure an uncooperativeClose has been initiated
         require(closing_requests[key].settle_block_number > 0); // test S7
 
-        // Make sure the challenge_period has ended
+        // Make sure the remove_period has ended
 	    require(block.number > closing_requests[key].settle_block_number); // test S8
         uint192 balance = closing_requests[key].closing_balance;
         settleChannel(msg.sender, _agent_address, _open_block_number, _offering_hash,
@@ -411,8 +418,8 @@ contract PrivatixServiceContract is Ownable {
       require(service_offering_s[_offering_hash].isActive); // test S13
       // only creator can delete his offering
       assert(service_offering_s[_offering_hash].agent_address == msg.sender); // test S14
-      // At least challenge_period blocks were mined after last offering structure update
-      require(service_offering_s[_offering_hash].update_block_number + challenge_period < block.number); // test S15
+      // At least remove_period blocks were mined after last offering structure update
+      require(service_offering_s[_offering_hash].update_block_number + remove_period < block.number); // test S15
       // return Agent's deposit back to his internal balance
       internal_balances[msg.sender] = internal_balances[msg.sender].add(
         service_offering_s[_offering_hash].min_deposit * service_offering_s[_offering_hash].max_supply
@@ -433,8 +440,8 @@ contract PrivatixServiceContract is Ownable {
     function popupServiceOffering (bytes32 _offering_hash) public returns(bool success)
     {
       require(service_offering_s[_offering_hash].update_block_number > 0); // Service offering already exists, test S16
-      // At least challenge_period blocks were mined after last offering structure update
-      require(service_offering_s[_offering_hash].update_block_number + challenge_period < block.number); // test S16a
+      // At least popup_period blocks were mined after last offering structure update
+      require(service_offering_s[_offering_hash].update_block_number + popup_period < block.number); // test S16a
       require(service_offering_s[_offering_hash].agent_address == msg.sender); // test S17
       // require(block.number > service_offering_s[_offering_hash].update_block_number);
 

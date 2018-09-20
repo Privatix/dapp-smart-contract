@@ -30,7 +30,7 @@ module.exports = async function(deployer, network, accounts) {
     const deploy = function(tokenContract){
         tokenContract.token().then(function(token){
             save(JSON.stringify(token, null, '\t'), "./token.json");
-            deployer.deploy(PSC, token, accounts[0], config.challengePeriod).then(saveAbi);
+            deployer.deploy(PSC, token, accounts[0], config.popup_period, config.remove_period).then(saveAbi);
         });
     };
 

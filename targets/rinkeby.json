@@ -1,5 +1,6 @@
 {
-  "challengePeriod": 50
+  "remove_period": 125
+ ,"popup_period": 250
  ,"port" : 5000
  ,"devTools": {
     "throwEventLogChannelCreated": "",
