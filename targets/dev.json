@@ -1,5 +1,6 @@
 {
-  "challengePeriod": 50
+  "removePeriod": 20
+ ,"popupPeriod": 25
  ,"port" : 5000
  ,"devTools": {
     "throwEventLogChannelCreated": "function throwEventLogChannelCreated(address _agent_address, address _client_address, bytes32 _offering_hash, uint192 _deposit, bytes32 _authentication_hash) public {emit LogChannelCreated(_agent_address, _client_address, _offering_hash, _deposit, _authentication_hash);}",
