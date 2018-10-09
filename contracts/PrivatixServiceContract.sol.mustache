@@ -13,14 +13,16 @@ contract PrivatixServiceContract is Ownable {
      *  Data structures
      */
 
-
+    // Number of blocks Agent must wait from last popupServiceOffering or from createChannel before
+    // he can popupServiceOffering.
     uint32 public popup_period;
 
-    // 1) Number of blocks to wait from an uncooperativeClose initiated by the Client
+    // Number of blocks to wait from an uncooperativeClose initiated by the Client
     // in order to give the Agent a chance to respond with a balance proof
     // in case the sender cheats. After the remove period, the sender can settle
     // and delete the channel.
-    // 2) Number of blocks Agent will wait from registerServiceOffering or from createChannel before
+    uint32 public challenge_period;
+    // Number of blocks Agent will wait from registerServiceOffering or from createChannel before
     // he can delete service offering and recieve Agent's deposit back.
     uint32 public remove_period;
 
@@ -136,19 +138,22 @@ contract PrivatixServiceContract is Ownable {
     /// @param _token_address The address of the PTC (Privatix Token Contract)
     /// @param _popup_period A fixed number of blocks representing the popup period.
     /// @param _remove_period A fixed number of blocks representing the remove period.
+    /// @param _challenge_period A fixed number of blocks representing the challenge period.
     /// We enforce a minimum of 500 blocks waiting period.
     /// after a sender requests the closing of the channel without the receiver's signature.
     constructor(
       address _token_address,
       address _network_fee_address,
       uint32 _popup_period,
-      uint32 _remove_period
+      uint32 _remove_period,
+      uint32 _challenge_period
       ) public {
         require(_token_address != 0x0);
         require(addressHasCode(_token_address));
         require(_network_fee_address != 0x0);
         require(_remove_period >= {{ remove_period }});
         require(_popup_period >= {{ popup_period }});
+        require(_challenge_period >= {{ challenge_period }});
 
         token = ERC20(_token_address);
 
@@ -158,6 +163,7 @@ contract PrivatixServiceContract is Ownable {
         network_fee_address = _network_fee_address;
         popup_period = _popup_period;
         remove_period = _remove_period;
+        challenge_period = _challenge_period;
 
     }
 
@@ -288,7 +294,7 @@ contract PrivatixServiceContract is Ownable {
         require(_balance <= channels[key].deposit); // test S11
 
         // Mark channel as closed
-        closing_requests[key].settle_block_number = uint32(block.number) + remove_period;
+        closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
         require(closing_requests[key].settle_block_number > block.number);
         closing_requests[key].closing_balance = _balance;
 
@@ -308,8 +314,8 @@ contract PrivatixServiceContract is Ownable {
         // Make sure an uncooperativeClose has been initiated
         require(closing_requests[key].settle_block_number > 0); // test S7
 
-        // Make sure the remove_period has ended
-	    require(block.number > closing_requests[key].settle_block_number); // test S8
+        // Make sure the challenge_period has ended
+        require(block.number > closing_requests[key].settle_block_number); // test S8
         uint192 balance = closing_requests[key].closing_balance;
         settleChannel(msg.sender, _agent_address, _open_block_number, _offering_hash,
            closing_requests[key].closing_balance

@@ -25,7 +25,8 @@ const PSC = artifacts.require("../contracts/PrivatixServiceContract.sol");
 const Sale = artifacts.require("../contracts/Sale.sol");
 
 const gasUsage = {};
-const {remove_period, popup_period} = config;
+const {remove_period, popup_period, challenge_period} = config;
+console.log("challenge period: ", challenge_period);
 console.log("remove period: ", remove_period);
 console.log("popup period: ", popup_period);
 
@@ -51,7 +52,7 @@ contract('PSC', (accounts) => {
 
         prix_token = await Prix_token.at(await sale.token());
         try {
-            psc = await PSC.new(await sale.token(), owner, popup_period, remove_period)
+            psc = await PSC.new(await sale.token(), owner, popup_period, remove_period, challenge_period)
         }catch(e){
             console.log("ERROR:", e);
         }
@@ -536,7 +537,7 @@ contract('PSC', (accounts) => {
         const uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
         gasUsage["psc.uncooperativeClose"] = uClose.receipt.gasUsed;
 
-        await skip(remove_period);
+        await skip(challenge_period);
         const settle = await psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
         gasUsage["psc.settle"] = settle.receipt.gasUsed;
 
@@ -577,7 +578,7 @@ contract('PSC', (accounts) => {
         const uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
         gasUsage["psc.uncooperativeClose"] = uClose.receipt.gasUsed;
 
-        await skip(remove_period);
+        await skip(challenge_period);
         gasUsage['ownerBefore'] = (await psc.internal_balances(owner)).toNumber();
         gasUsage['vendorBefore'] = (await psc.internal_balances(vendor)).toNumber();
         gasUsage['clientBefore'] = (await psc.internal_balances(client)).toNumber();
@@ -661,7 +662,7 @@ contract('PSC', (accounts) => {
         const sum = 10;
         const uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
 
-        await skip(remove_period);
+        await skip(challenge_period);
         holder.transaction = psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
@@ -928,11 +929,11 @@ contract('PSC', (accounts) => {
 
         const sum = 10;
 
-        await skip(remove_period);
+        await skip(challenge_period);
         chaiAssert.isRejected(psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client}));
  
         await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
-        await skip(remove_period);
+        await skip(challenge_period);
         chaiAssert.isFulfilled(psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client}));
     });
 
@@ -953,7 +954,7 @@ contract('PSC', (accounts) => {
         const sum = 10;
         await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
 
-        await skip(remove_period-3);
+        await skip(challenge_period-3);
         chaiAssert.isRejected(psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client}));
 
         await skip(3);
