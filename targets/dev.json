@@ -1,5 +1,6 @@
 {
-  "removePeriod": 20
+  "challenge_period": 50
+ ,"removePeriod": 20
  ,"popupPeriod": 25
  ,"port" : 5000
  ,"devTools": {
