@@ -13,7 +13,7 @@ contract PrivatixServiceContract is Ownable {
      *  Data structures
      */
 
-    // Number of blocks Agent must wait from last popupServiceOffering or from createChannel before
+    // Number of blocks Agent must wait from last popupServiceOffering or from registerServiceOffering before
     // he can popupServiceOffering.
     uint32 public popup_period;
 
@@ -22,15 +22,16 @@ contract PrivatixServiceContract is Ownable {
     // in case the sender cheats. After the remove period, the sender can settle
     // and delete the channel.
     uint32 public challenge_period;
-    // Number of blocks Agent will wait from registerServiceOffering or from createChannel before
-    // he can delete service offering and recieve Agent's deposit back.
+
+    // Number of blocks Agent will wait from registerServiceOffering or from last popupServiceOffering before
+    // he can delete service offering and receive Agent's deposit back.
     uint32 public remove_period;
 
-    // Contract semantic version
-    string public constant meta_version = '0.1.0';
-
+    // Fee that goes to network_fee_address from each closed channel balance.
     uint32 public network_fee;
-    address network_fee_address;
+    
+    // Address where network_fee is transferred.
+    address public network_fee_address;
 
     // We temporarily limit total token deposits in a channel to 300 PRIX.
     // This is just for the bug bounty release, as a safety measure.
@@ -43,16 +44,16 @@ contract PrivatixServiceContract is Ownable {
     mapping (address => uint192) public internal_balances;
     mapping(bytes32 => ServiceOffering) private service_offering_s;
 
-    // 32 bytes + 29 bytes
+    // 52 bytes
     struct ServiceOffering{
-      uint192 min_deposit;  // bytes24 - Minumum deposit that Client should place to open state channel.
+      uint192 min_deposit;  // bytes24 - Minimum deposit that Client should place to open state channel.
       address agent_address; //bytes20 - Address of Agent.
       uint16 max_supply; // bytes2 - Maximum supply of services according to service offerings.
-      uint16 current_supply; // bytes2 - Currently remianing available supply.
-      uint32 update_block_number; //bytes4 - Last block number when service offering was created, poped-up or channel opened. If 0 - offering was removed.
+      uint16 current_supply; // bytes2 - Currently remaining available supply.
+      uint32 update_block_number; //bytes4 - Last block number when service offering was created, popped-up or channel opened. If 0 - offering was removed.
     }
 
-    // 24 bytes (deposit) + 4 bytes (block number)
+    // 28 bytes
     struct Channel {
         // uint192 is the maximum uint size needed for deposit based on a
         // 10^8 * 10^18 token totalSupply.
@@ -65,7 +66,7 @@ contract PrivatixServiceContract is Ownable {
         uint32 open_block_number;
     }
 
-    // 24 bytes (deposit) + 4 bytes (block number)
+    // 28 bytes
     struct ClosingRequest {
         // Number of tokens owed by the Client when closing the channel.
         uint192 closing_balance;
@@ -82,8 +83,7 @@ contract PrivatixServiceContract is Ownable {
         address indexed _agent,
         address indexed _client,
         bytes32 indexed _offering_hash,
-        uint192 _deposit,
-        bytes32 _authentication_hash);
+        uint192 _deposit);
     event LogChannelToppedUp(
         address indexed _agent,
         address indexed _client,
@@ -104,12 +104,6 @@ contract PrivatixServiceContract is Ownable {
     event LogOfferingDeleted(
       address indexed _agent,
       bytes32 indexed _offering_hash);
-    event LogOfferingEndpoint(
-      address indexed _agent,
-      address indexed _client,
-      bytes32 indexed _offering_hash,
-      uint32 _open_block_number,
-      bytes32 _endpoint_hash);
     event LogOfferingPopedUp(
       address indexed _agent,
       bytes32 indexed _offering_hash);
@@ -136,7 +130,7 @@ contract PrivatixServiceContract is Ownable {
 
     /// @notice Constructor for creating the Privatix Service Contract.
     /// @param _token_address The address of the PTC (Privatix Token Contract)
-    /// @param _popup_period A fixed number of blocks representing the popup period.
+    /// @param _popup_period A fixed number of blocks representing the pop-up period.
     /// @param _remove_period A fixed number of blocks representing the remove period.
     /// @param _challenge_period A fixed number of blocks representing the challenge period.
     /// We enforce a minimum of 500 blocks waiting period.
@@ -172,15 +166,15 @@ contract PrivatixServiceContract is Ownable {
      */
 
     /// @notice Creates a new internal balance by transferring from PTC ERC20 token.
-    /// @param _value Token transfered to intenal balance.
+    /// @param _value Token transfered to internal balance.
     function addBalanceERC20(uint192 _value) external {
       internal_balances[msg.sender] = internal_balances[msg.sender].add(_value);
       // transferFrom deposit from sender to contract
-      // ! needs prior approval from user
+      // ! needs prior approval on token contract.
       require(token.transferFrom(msg.sender, address(this), _value));
     }
 
-    /// @notice Returns tokens from internal balance to PTC ERC20 token.
+    /// @notice Transfers tokens from internal balance to PTC ERC20 token.
     /// @param _value Token amount to return.
     function returnBalanceERC20(uint192 _value) external {
       internal_balances[msg.sender] = internal_balances[msg.sender].sub(_value); // test S21
@@ -194,10 +188,14 @@ contract PrivatixServiceContract is Ownable {
       return (internal_balances[_address]); // test U1
     }
 
+    /// @notice Change address where fee is transferred
+    /// @param  _network_fee_address Address where network_fee is transferred.
     function setNetworkFeeAddress(address _network_fee_address) external onlyOwner { // test S24
         network_fee_address = _network_fee_address;
     }
 
+    /// @notice Change network fee value. It is limited from 0 to 1%.
+    /// @param  _network_fee Fee that goes to network_fee_address from each closed channel balance.
     function setNetworkFee(uint32 _network_fee) external onlyOwner { // test S22
         require(_network_fee <= 1000); // test S23
         network_fee = _network_fee;
@@ -208,15 +206,14 @@ contract PrivatixServiceContract is Ownable {
     /// @param _agent_address The address of Agent that receives tokens.
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
     /// @param _deposit The amount of tokens that the Client escrows.
-    /// @param _authentication_hash Hash of authentication message, which is delivered off-chain.
-    function createChannel(address _agent_address, bytes32 _offering_hash, uint192 _deposit, bytes32 _authentication_hash) external {
+    function createChannel(address _agent_address, bytes32 _offering_hash, uint192 _deposit) external {
         require(_deposit >= service_offering_s[_offering_hash].min_deposit); // test S4
         require(internal_balances[msg.sender] >= _deposit); // test S5
 
         decreaseOfferingSupply(_agent_address, _offering_hash);
         createChannelPrivate(msg.sender, _agent_address, _offering_hash, _deposit);
         internal_balances[msg.sender] = internal_balances[msg.sender].sub(_deposit); //test S5
-        emit LogChannelCreated(_agent_address, msg.sender, _offering_hash, _deposit, _authentication_hash); //test E1
+        emit LogChannelCreated(_agent_address, msg.sender, _offering_hash, _deposit); //test E1
     }
 
     /// @notice Increase the channel deposit with `_added_deposit`.
@@ -277,7 +274,7 @@ contract PrivatixServiceContract is Ownable {
     /// This can only happen once.
     /// @param _agent_address The address of Agent that receives tokens.
     /// @param _open_block_number The block number at which a channel between
-    /// the Client and Agnet was created.
+    /// the Client and Agent was created.
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
     /// @param _balance The amount of tokens owed by the Client to the Agent.
     function uncooperativeClose(
@@ -363,23 +360,6 @@ contract PrivatixServiceContract is Ownable {
         // test U2
     }
 
-    /// @notice Called by Agent to publish service endpoint
-    /// @param _client_address The address of Client that sends tokens.
-    /// @param _offering_hash Service Offering hash that uniquely identifies it.
-    /// @param _open_block_number The block number at which a channel between the
-    /// Client and Agent was created.
-    /// @param _endpoint_hash Hash of endpoint message delivered off-chain.
-    function publishServiceOfferingEndpoint(
-     address _client_address,
-     bytes32 _offering_hash,
-     uint32 _open_block_number,
-     bytes32 _endpoint_hash)
-     external
-    {
-      require(service_offering_s[_offering_hash].agent_address == msg.sender); // test S12
-      emit LogOfferingEndpoint(msg.sender, _client_address, _offering_hash, _open_block_number, _endpoint_hash); // test E6
-    }
-
 
     /*
      *  Public functions
@@ -387,15 +367,13 @@ contract PrivatixServiceContract is Ownable {
 
     /// @notice Called by Agent to register service offering
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
-    /// @param _min_deposit Minumum deposit that Client should place to open state channel.
+    /// @param _min_deposit Minimum deposit that Client should place to open state channel.
     /// @param _max_supply Maximum supply of services according to service offerings.
-    /// @return True on sucess
     function registerServiceOffering (
      bytes32 _offering_hash,
      uint192 _min_deposit,
      uint16 _max_supply)
      public
-     returns(bool success)
     {
       require(service_offering_s[_offering_hash].update_block_number == 0); // Service offering not exists, test S2
       require(_min_deposit.mul(_max_supply) < channel_deposit_bugbounty_limit); //Agent deposit greater than max allowed, test S1
@@ -404,21 +382,17 @@ contract PrivatixServiceContract is Ownable {
       service_offering_s[_offering_hash] = ServiceOffering(_min_deposit, msg.sender, _max_supply, _max_supply, uint32(block.number));
 
       // Substitute deposit amount for each offering slot from agent's internal balance
-      // Service vendor internal balance must be not less then _min_deposit * _max_supply
+      // Service provider internal balance must be not less then _min_deposit * _max_supply
       internal_balances[msg.sender] = internal_balances[msg.sender].sub(_min_deposit.mul(_max_supply)); // test S26
 
       emit LogOfferingCreated(msg.sender, _offering_hash, _min_deposit, _max_supply); // test E4
-
-      return true;
     }
 
     /// @notice Called by Agent to permanently deactivate service offering.
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
-    /// @return True on sucess
     function removeServiceOffering (
      bytes32 _offering_hash)
      public
-     returns(bool success)
     {
       require(service_offering_s[_offering_hash].update_block_number > 0); // test S13
       // only creator can delete his offering
@@ -429,20 +403,16 @@ contract PrivatixServiceContract is Ownable {
       internal_balances[msg.sender] = internal_balances[msg.sender].add(
         service_offering_s[_offering_hash].min_deposit * service_offering_s[_offering_hash].max_supply
       );
-      // this flag marks offering as deleted
+      // this marks offering as deleted
       service_offering_s[_offering_hash].update_block_number = 0;
 
       emit LogOfferingDeleted(msg.sender, _offering_hash); // test E5
-
-      return true;
     }
 
     /// @notice Called by Agent to signal that service offering is actual
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
-    /// *param _min_deposit Minumum deposit that Client should place to open state channel.
-    /// *param _max_supply Maximum supply of services according to service offerings.
-    /// @return True on sucess
-    function popupServiceOffering (bytes32 _offering_hash) public returns(bool success)
+    function popupServiceOffering (bytes32 _offering_hash)
+    public
     {
       require(service_offering_s[_offering_hash].update_block_number > 0); // Service offering already exists, test S16
       // At least popup_period blocks were mined after last offering structure update
@@ -453,8 +423,6 @@ contract PrivatixServiceContract is Ownable {
       service_offering_s[_offering_hash].update_block_number = uint32(block.number);
 
       emit LogOfferingPopedUp(msg.sender, _offering_hash); // test E8
-
-      return true;
     }
 
     /// @notice Returns the sender address extracted from the balance proof or closing signature.
@@ -478,13 +446,8 @@ contract PrivatixServiceContract is Ownable {
         view
         returns (address)
     {
-        // The variable names from below will be shown to the sender when signing
-        // the balance proof, so they have to be kept in sync with the Dapp client.
         // The hashed strings should be kept in sync with this function's parameters
         // (variable names and types).
-        // ! Note that EIP712 might change how hashing is done, triggering a
-        // new contract deployment with updated code.
-
         bytes32 message_hash =
         keccak256("\x19Ethereum Signed Message:\n32",
             keccak256(
@@ -561,7 +524,6 @@ contract PrivatixServiceContract is Ownable {
     /// @notice Decreases available service offering supply.
     /// @param _agent_address The address of Agent that created service offering.
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
-    /// @return True in both case, when Service Offering still active or already deactivated.
 
     function decreaseOfferingSupply(address _agent_address, bytes32 _offering_hash)
      private
@@ -625,7 +587,7 @@ contract PrivatixServiceContract is Ownable {
         emit LogChannelToppedUp(_agent_address, _client_address, _offering_hash, _open_block_number, _added_deposit); // test E2
     }
 
-    /// @dev Deletes the channel and settles by transfering the balance to the Agent
+    /// @dev Deletes the channel and settles by transferring the balance to the Agent
     /// and the rest of the deposit back to the Client.
     /// @param _client_address The address of Client that sends tokens.
     /// @param _agent_address The address of Agent that receives tokens.
