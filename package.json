@@ -9,12 +9,8 @@
   "scripts": {
     "pretest": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol",
     "test": "ganache-cli > ./ganache.log 2>&1 & truffle test ./test/psc.js --compile-all --network local_geth && sudo kill -9 $(lsof -ti :8545)",
-    "back": "ganache-cli > ./ganache.log 2>&1 & truffle test ./test/back.js --compile-all --network local_geth &",
-    "deploy": "ganache-cli > ./ganache.log 2>&1 & truffle migrate --network local_geth",
-    "ropsten": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && TARGET=${TARGET} truffle migrate --network ropsten",
     "rinkeby": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && TARGET=${TARGET} truffle migrate --network rinkeby",
-    "dev": "mustache targets/dev.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && npm run back",
-    "stop": "sudo kill -9 $(lsof -ti :8545) && sudo kill -9 $(lsof -ti :5000)",
+    "stop": "sudo kill -9 $(lsof -ti :8545)",
     "env": "echo $TARGET"
   },
   "author": "Vitaliy Gnidenko",

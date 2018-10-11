@@ -1,18 +1,6 @@
 {
-  "challenge_period": 50
- ,"remove_period": 20
- ,"popup_period": 25
- ,"port" : 5000
- ,"devTools": {
-    "throwEventLogChannelCreated": "",
-    "throwEventLogChannelToppedUp": "",
-    "throwEventLogChannelCloseRequested": "",
-    "throwEventLogOfferingCreated": "",
-    "throwEventLogOfferingDeleted": "",
-    "throwEventLogOfferingEndpoint": "",
-    "throwEventLogOfferingPopedUp": "",
-    "throwEventLogCooperativeChannelClose": "",
-    "throwEventLogUnCooperativeChannelClose": ""
-  },
-  "saleAddress": ""
+  "challenge_period": 20
+ ,"remove_period": 5
+ ,"popup_period": 10
+ ,"saleAddress": ""
 }
