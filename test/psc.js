@@ -1,5 +1,4 @@
 import increaseTime, { duration } from 'openzeppelin-solidity/test/helpers/increaseTime';
-// import moment from 'moment';
 import * as chai from 'chai';
 const config = require(`../targets/${process.env.TARGET}.json`);
 const chaiAsPromised = require("chai-as-promised");
@@ -19,13 +18,12 @@ const abi = require('ethereumjs-abi');
 const utils = require('ethereumjs-util');
 
 const Prix_token = artifacts.require("../contracts/Token.sol");
-// const Prix2_token = artifacts.require("../contracts/Token2.sol");
-// const stdToken = artifacts.require("../contracts/StandardToken.sol");
 const PSC = artifacts.require("../contracts/PrivatixServiceContract.sol");
 const Sale = artifacts.require("../contracts/Sale.sol");
 
 const gasUsage = {};
-const {remove_period, popup_period} = config;
+const {remove_period, popup_period, challenge_period} = config;
+console.log("challenge period: ", challenge_period);
 console.log("remove period: ", remove_period);
 console.log("popup period: ", popup_period);
 
@@ -51,7 +49,7 @@ contract('PSC', (accounts) => {
 
         prix_token = await Prix_token.at(await sale.token());
         try {
-            psc = await PSC.new(await sale.token(), owner, popup_period, remove_period)
+            psc = await PSC.new(await sale.token(), owner, popup_period, remove_period, challenge_period)
         }catch(e){
             console.log("ERROR:", e);
         }
@@ -170,8 +168,7 @@ contract('PSC', (accounts) => {
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
         gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
         gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
 
         const sum = 10;
@@ -205,8 +202,7 @@ contract('PSC', (accounts) => {
         const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        holder.transaction = psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        holder.transaction = psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
@@ -242,8 +238,7 @@ contract('PSC', (accounts) => {
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const sum = 10;
         const balanceSig = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
@@ -280,8 +275,7 @@ contract('PSC', (accounts) => {
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
         gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 200000, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 200000, {from:client});
         gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
 
         const sum = 100000;
@@ -320,8 +314,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         var sum = 10;
 
@@ -354,8 +347,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         var sum = 10;
 
@@ -388,8 +380,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         var sum = 10;
 
@@ -422,8 +413,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         var sum = 10;
 
@@ -454,8 +444,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         var sum = 10;
 
@@ -487,8 +476,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         var sum = 10;
 
@@ -528,15 +516,14 @@ contract('PSC', (accounts) => {
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
         gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
         gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
 
         const sum = 10;
         const uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
         gasUsage["psc.uncooperativeClose"] = uClose.receipt.gasUsed;
 
-        await skip(remove_period);
+        await skip(challenge_period);
         const settle = await psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
         gasUsage["psc.settle"] = settle.receipt.gasUsed;
 
@@ -569,15 +556,14 @@ contract('PSC', (accounts) => {
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
         gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 300000, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 300000, {from:client});
         gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
 
         const sum = 200000;
         const uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
         gasUsage["psc.uncooperativeClose"] = uClose.receipt.gasUsed;
 
-        await skip(remove_period);
+        await skip(challenge_period);
         gasUsage['ownerBefore'] = (await psc.internal_balances(owner)).toNumber();
         gasUsage['vendorBefore'] = (await psc.internal_balances(vendor)).toNumber();
         gasUsage['clientBefore'] = (await psc.internal_balances(client)).toNumber();
@@ -610,10 +596,9 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
         // try again
-        chaiAssert.isRejected(psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client}));
+        chaiAssert.isRejected(psc.createChannel(vendor, offering_hash, 20, {from:client}));
 
     });
 
@@ -630,8 +615,7 @@ contract('PSC', (accounts) => {
         const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const sum = 10;
         holder.transaction = psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
@@ -655,13 +639,12 @@ contract('PSC', (accounts) => {
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const sum = 10;
         const uClose = await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
 
-        await skip(remove_period);
+        await skip(challenge_period);
         holder.transaction = psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
@@ -679,17 +662,13 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const topUp = await psc.topUpChannel(vendor, channel.receipt.blockNumber, offering_hash, 10, {from:client});
         gasUsage["psc.topUp"] = topUp.receipt.gasUsed;
 
         const channelInfo = await psc.getChannelInfo(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
         gasUsage["psc.getChannelInfo"] = await psc.getChannelInfo.estimateGas(client, vendor, channel.receipt.blockNumber, offering_hash, {from:client});
-
-        const publishServiceOfferingEndpoint = await psc.publishServiceOfferingEndpoint(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor});
-        gasUsage["psc.publishServiceOfferingEndpoint"] =  await psc.publishServiceOfferingEndpoint.estimateGas(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor});
 
         const sum = 10;
 
@@ -736,8 +715,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
         holder.transaction = psc.topUpChannel(vendor, channel.receipt.blockNumber, offering_hash, 10, {from:client});
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
@@ -762,27 +740,6 @@ contract('PSC', (accounts) => {
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
 
-    it("E6: publishServiceOfferingEndpoint/LogOfferingEndpoint event triggering", async () => {
-
-        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
-
-        const holder = {};
-        putOnGuard(holder, ["LogOfferingEndpoint"], psc);
-
-        await prix_token.approve(psc.address, 1e8,{from:vendor});
-        await psc.addBalanceERC20(1e8, {from:vendor});
-        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
-        await prix_token.approve(psc.address, 1e8,{from:client});
-        await psc.addBalanceERC20(1e8, {from:client});
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
-
-        holder.transaction =  psc.publishServiceOfferingEndpoint(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor});
-
-        return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
-    });
-
     it("E8: popupServiceOffering/LogOfferingPopedUp event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -799,9 +756,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
-        await psc.publishServiceOfferingEndpoint(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         await skip(popup_period);
         holder.transaction = psc.popupServiceOffering(offering_hash, {from:vendor});
@@ -858,9 +813,8 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        chaiAssert.isRejected(psc.createChannel(vendor, offering_hash, 19, authentication_hash, {from:client}));
-        chaiAssert.isFulfilled(psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client}));
+        chaiAssert.isRejected(psc.createChannel(vendor, offering_hash, 19, {from:client}));
+        chaiAssert.isFulfilled(psc.createChannel(vendor, offering_hash, 20, {from:client}));
 
     });
 
@@ -875,9 +829,8 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(20, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        chaiAssert.isRejected(psc.createChannel(vendor, offering_hash, 21, authentication_hash, {from:client}));
-        chaiAssert.isFulfilled(psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client}));
+        chaiAssert.isRejected(psc.createChannel(vendor, offering_hash, 21, {from:client}));
+        chaiAssert.isFulfilled(psc.createChannel(vendor, offering_hash, 20, {from:client}));
 
     });
 
@@ -892,8 +845,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const sum = 10;
         const balanceSig = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
@@ -923,16 +875,15 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const sum = 10;
 
-        await skip(remove_period);
+        await skip(challenge_period);
         chaiAssert.isRejected(psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client}));
  
         await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
-        await skip(remove_period);
+        await skip(challenge_period);
         chaiAssert.isFulfilled(psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client}));
     });
 
@@ -947,13 +898,12 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const sum = 10;
         await psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, {from: client});
 
-        await skip(remove_period-3);
+        await skip(challenge_period-3);
         chaiAssert.isRejected(psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client}));
 
         await skip(3);
@@ -973,8 +923,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const sum = 10;
 
@@ -994,8 +943,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const sum = 10;
         await skip(1);
@@ -1016,32 +964,12 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 1e8, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 1e8, {from:client});
 
         await skip(1)
         chaiAssert.isRejected(psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, 1e8+1, {from: client}));
         await skip(1)
         chaiAssert.isFulfilled(psc.uncooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, 1e8, {from: client}));
-    });
-
-    it("S12: try to publish endpoint from someone else's name", async () => {
-
-        await prix_token.approve(psc.address, 1e8,{from:vendor});
-        await psc.addBalanceERC20(1e8, {from:vendor});
-
-        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
-
-        await prix_token.approve(psc.address, 1e8,{from:client});
-        await psc.addBalanceERC20(1e8, {from:client});
-
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
-
-        chaiAssert.isRejected(psc.publishServiceOfferingEndpoint(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:owner}));
-        chaiAssert.isFulfilled(psc.publishServiceOfferingEndpoint(client, offering_hash, channel.receipt.blockNumber, offering_hash, {from:vendor}));
-
     });
 
     it("S13: try to remove nonexistent offering", async () => {
@@ -1164,8 +1092,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const sum = 200;
         const wrongBalanceSig = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
@@ -1201,8 +1128,7 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const sum = 10;
 
@@ -1296,8 +1222,7 @@ contract('PSC', (accounts) => {
 
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
 
-        const authentication_hash = "0x" + abi.soliditySHA3(['string'],['authentication message']).toString('hex');
-        const channel = await psc.createChannel(vendor, offering_hash, 20, authentication_hash, {from:client});
+        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         const retrievedOffering = await psc.getOfferingInfo(offering_hash);
         assert.equal(retrievedOffering[3].toNumber(), 9, 'expected 9 free offering supplies');
