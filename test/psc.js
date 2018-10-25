@@ -150,45 +150,30 @@ contract('PSC', (accounts) => {
 
     it("I0a: cooperativeClose, standard use case, 0% fee", async () => {
 
+        const msg = function(length){
+            let res = '';
+            for(let i=0; i<length; i++){
+                res+= '_';
+            }
+            return res;
+        };
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
-        gasUsage["token.approve"] = approve.receipt.gasUsed;
+        // gasUsage["token.approve"] = approve.receipt.gasUsed;
 
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
-        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+        // gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
 
-        const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
-        gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
-
-        const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
-        gasUsage["token.approve"] = ClientApprove.receipt.gasUsed;
-
-        const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
-        gasUsage["psc.addBalanceERC20"] = ClientBlock.receipt.gasUsed;
-
-        const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
-        gasUsage["psc.createChannel"] = channel.receipt.gasUsed;
-
-        const sum = 10;
-        const balanceSig = getBalanceSignature(vendor, channel.receipt.blockNumber, offering_hash, sum, psc.address);
-        const signedBalanceSig = web3.eth.sign(client, balanceSig);
-
-        const closeSig = getCloseSignature(client, channel.receipt.blockNumber, offering_hash, sum, psc.address);
-        const signedCloseSig = web3.eth.sign(vendor, closeSig);
-
-        const cClose = await psc.cooperativeClose(vendor, channel.receipt.blockNumber, offering_hash, sum, signedBalanceSig, signedCloseSig, {from: vendor});
-        gasUsage["psc.cooperativeClose"] = cClose.receipt.gasUsed;
-
-        assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
-        const ret = await psc.returnBalanceERC20(10, {from:vendor});
-        gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
-
-        assert.equal((await prix_token.balanceOf(vendor)).toNumber(), 4e8+10, 'balance of vendor must be 5e8+20');
+        for(let i=1; i<1025; i++){
+            const offer = msg(i);
+            const offering_hash = "0x" + abi.soliditySHA3(['string'],[offer]).toString('hex');
+            const offering = await psc.registerServiceOffering(offering_hash, 20, 10, 1, offer, {from:vendor});
+            gasUsage[i] = offering.receipt.gasUsed;
+        }
  
     });
-
+/*
     it("E1: createChannel/LogChannelCreated event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -217,7 +202,7 @@ contract('PSC', (accounts) => {
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        holder.transaction = psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        holder.transaction = psc.registerServiceOffering(offering_hash, 20, 10, 1, 'some_source', {from:vendor});
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
@@ -266,7 +251,7 @@ contract('PSC', (accounts) => {
         gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 200000, 10, {from:vendor});
+        const offering = await psc.registerServiceOffering(offering_hash, 200000, 10, 1, 'some_source', {from:vendor});
         gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
 
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
@@ -1228,5 +1213,5 @@ contract('PSC', (accounts) => {
         assert.equal(retrievedOffering[3].toNumber(), 9, 'expected 9 free offering supplies');
 
     });
-
+*/
 });

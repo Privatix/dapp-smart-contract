@@ -100,7 +100,9 @@ contract PrivatixServiceContract is Ownable {
         address indexed _agent,
         bytes32 indexed _offering_hash,
         uint256 indexed _min_deposit,
-        uint16 _current_supply);
+        uint16 _current_supply,
+        uint8 _source_type,
+        bytes _source);
     event LogOfferingDeleted(
       address indexed _agent,
       bytes32 indexed _offering_hash);
@@ -372,8 +374,10 @@ contract PrivatixServiceContract is Ownable {
     function registerServiceOffering (
      bytes32 _offering_hash,
      uint192 _min_deposit,
-     uint16 _max_supply)
-     public
+     uint16 _max_supply,
+     uint8 _source_type,
+     bytes _source)
+     external
     {
       require(service_offering_s[_offering_hash].update_block_number == 0); // Service offering not exists, test S2
       require(_min_deposit.mul(_max_supply) < channel_deposit_bugbounty_limit); //Agent deposit greater than max allowed, test S1
@@ -385,14 +389,14 @@ contract PrivatixServiceContract is Ownable {
       // Service provider internal balance must be not less then _min_deposit * _max_supply
       internal_balances[msg.sender] = internal_balances[msg.sender].sub(_min_deposit.mul(_max_supply)); // test S26
 
-      emit LogOfferingCreated(msg.sender, _offering_hash, _min_deposit, _max_supply); // test E4
+      emit LogOfferingCreated(msg.sender, _offering_hash, _min_deposit, _max_supply, _source_type, _source); // test E4
     }
 
     /// @notice Called by Agent to permanently deactivate service offering.
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
     function removeServiceOffering (
      bytes32 _offering_hash)
-     public
+     external
     {
       require(service_offering_s[_offering_hash].update_block_number > 0); // test S13
       // only creator can delete his offering
