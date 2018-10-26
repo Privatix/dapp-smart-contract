@@ -165,13 +165,14 @@ contract('PSC', (accounts) => {
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
         // gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
 
-        for(let i=1; i<1025; i++){
+        for(let i=1; i<64; i++){
             const offer = msg(i);
             const offering_hash = "0x" + abi.soliditySHA3(['string'],[offer]).toString('hex');
             const offering = await psc.registerServiceOffering(offering_hash, 20, 10, 1, offer, {from:vendor});
             gasUsage[i] = offering.receipt.gasUsed;
         }
- 
+        const _msg = "0x" + abi.soliditySHA3(['string'],['plyzfy3qicjjvmeg.onion']).toString('hex');
+        gasUsage['registerServiceOffering_res'] = JSON.stringify(await psc.registerServiceOffering(offering_hash, 20, 10, 1, _msg, {from:vendor}));
     });
 /*
     it("E1: createChannel/LogChannelCreated event triggering", async () => {
@@ -634,7 +635,7 @@ contract('PSC', (accounts) => {
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
-
+*/
     it("I3: measuring gas consumption for other members:", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
@@ -642,7 +643,7 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, 'onion', {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -676,14 +677,14 @@ contract('PSC', (accounts) => {
         gasUsage["psc.balanceOf"] = await psc.balanceOf.estimateGas(client, {from:client});
 
         await skip(popup_period);
-        gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, {from:vendor});
-        await psc.popupServiceOffering(offering_hash, {from:vendor});
+        gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, 1, 'onion', {from:vendor});
+        gasUsage["psc.popupServiceOffering_res"] = JSON.stringify(await psc.popupServiceOffering(offering_hash, 1, 'plyzfy3qicjjvmeg.onion', {from:vendor}));
 
         await skip(remove_period);
         gasUsage["psc.removeServiceOffering"] = await psc.removeServiceOffering.estimateGas(offering_hash, {from:vendor});
  
     });
-
+/*
     it("E2: topUpChannel/LogChannelToppedUp event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -724,7 +725,7 @@ contract('PSC', (accounts) => {
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
-
+*/
     it("E8: popupServiceOffering/LogOfferingPopedUp event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -736,7 +737,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, 'onion', {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -744,11 +746,11 @@ contract('PSC', (accounts) => {
         const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         await skip(popup_period);
-        holder.transaction = psc.popupServiceOffering(offering_hash, {from:vendor});
+        holder.transaction = psc.popupServiceOffering(offering_hash, 1, 'onion', {from:vendor});
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
-
+/*
     it("S1: check if provider try to publish offering with overflow in _min_deposit * _max_supply", async () => {
 
         await prix_token.approve(psc.address, 1e8,{from:vendor});

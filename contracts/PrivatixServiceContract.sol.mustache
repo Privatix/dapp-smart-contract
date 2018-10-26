@@ -108,7 +108,11 @@ contract PrivatixServiceContract is Ownable {
       bytes32 indexed _offering_hash);
     event LogOfferingPopedUp(
       address indexed _agent,
-      bytes32 indexed _offering_hash);
+      bytes32 indexed _offering_hash,
+      uint256 indexed _min_deposit,
+      uint16 _current_supply,
+      uint8 _source_type,
+      bytes _source);
     event LogCooperativeChannelClose(
       address indexed _agent,
       address indexed _client,
@@ -415,8 +419,11 @@ contract PrivatixServiceContract is Ownable {
 
     /// @notice Called by Agent to signal that service offering is actual
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
-    function popupServiceOffering (bytes32 _offering_hash)
-    public
+    function popupServiceOffering (
+        bytes32 _offering_hash,
+        uint8 _source_type,
+        bytes _source)
+    external
     {
       require(service_offering_s[_offering_hash].update_block_number > 0); // Service offering already exists, test S16
       // At least popup_period blocks were mined after last offering structure update
@@ -424,9 +431,10 @@ contract PrivatixServiceContract is Ownable {
       require(service_offering_s[_offering_hash].agent_address == msg.sender); // test S17
       // require(block.number > service_offering_s[_offering_hash].update_block_number);
 
+      ServiceOffering memory offering = service_offering_s[_offering_hash];
       service_offering_s[_offering_hash].update_block_number = uint32(block.number);
 
-      emit LogOfferingPopedUp(msg.sender, _offering_hash); // test E8
+      emit LogOfferingPopedUp(msg.sender, _offering_hash, offering.min_deposit, offering.current_supply, _source_type, _source); // test E8
     }
 
     /// @notice Returns the sender address extracted from the balance proof or closing signature.
