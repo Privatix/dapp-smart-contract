@@ -106,12 +106,24 @@ Tests are run using the following command:
 ```
 TARGET=test npm run test
 ```
-Available targets you can see in `targets` directory. Setting the environment variable may differ on your system.
+Available targets you can see in [targets](targets) directory. 
+Setting the environment variable may differ on your system.
 
 # Deploy
 
-* `TARGET=dev|stage npm run rinkeby` deploys contract into rinkeby testnet.
-* `TARGET=dev|stage MNEMONIC='if you want use your wallet' npm run rinkeby`
+Please, use `rinkeby` script to deploy contract to the testnet:
+
+```bash
+npm run rinkeby
+```
+
+Options:
+* `TARGET=<target>`, where `<target>` is `dev` or `stage`:
+    ```bash
+    TARGET=dev npm run rinkeby
+    ```
+* `MNEMONIC="<mnemonic phrase>"`, where `<mnemonic phrase>` is 12 word mnemonic 
+which addresses are created from.
 
 After deploying, abi files are saved to current directory (root of project).
 
@@ -119,26 +131,32 @@ It's necessary to point out which configuration you want to use. Available confi
 
 * `dev`
 * `stage`
-* `test`
 
-You can see them in `targets` directory. Of course, you can add your own configuration.
-if you already have `Sale` contract deployed you can specify it in the configuration (`saleAddress` property). In that case deployed contract will be used instead of deploying new one.
-If you want to deploy contract using another wallet - specify it in truffle config (`truffle.js`, `rinkeby` section).
+You can see them in [targets](targets) directory. 
+Of course, you can add your own configuration.
 
-```
-TARGET=ropsten npm run ropsten
-TARGET=test npm run deploy
-```
+if you already have `Sale` contract deployed you can specify it in the configuration 
+(`saleAddress` property). In that case deployed contract will be used instead of 
+deploying new one.
 
-If you have already deployed Sale contract you can use it when deploying PSC contract — just set `saleAddress` property in configuration.
-
-Before deploying make sure you have enough funds on wallet (1 eth will be enough). Deploy scripts use wallet with `0xA5020D791fb405BD2D516A2c0824e5bac0f764B8` address via infura (see `truffle.js`).
+Before deploying make sure you have enough funds on wallet (1 eth will be enough). 
 
 You can request ethers for free here:
 
 * [metamask.io](https://faucet.metamask.io/) (make sure you have Metamask extension installed)
 * [ropsten.be](http://faucet.ropsten.be:3001/)
 
+## Example of deploy
+
+* Dev:
+    ```bash
+    ./scripts/deploy_dev.sh
+    ```
+* Stage
+    ```bash
+    ./scripts/deploy_stage.sh
+    ```
+ 
 # Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
