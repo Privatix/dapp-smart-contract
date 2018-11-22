@@ -110,22 +110,19 @@ Available targets you can see in `targets` directory. Setting the environment va
 
 # Deploy
 
-There are three npm scripts for deploy — `npm run deploy`, `npm run ropsten` and `npm run rinkeby`.
-
-* `npm run deploy` script deploys contract to local_geth network. Although it seems not much useful it provides information about deploys costs, you can see them in ganache.log.
-* `npm run ropsten` deploys contract into ropsten testnet. Because of ropsten's gas limit (4.7m) you can't deploy develop version of contract (target=dev).
-* `npm run rinkeby` deploys contract into rinkeby testnet. Rinkeby's gas limit is much more (~7m) wich makes possible deploy develop version of contract.
+* `npm run rinkeby` deploys contract into rinkeby testnet.
 
 After deploying, abi files are saved to current directory (root of project).
 
 It's necessary to point out which configuration you want to use. Available configurations are:
 
 * `dev`
+* `stage`
 * `test`
-* `ropsten`
-* `rinkeby`
 
 You can see them in `targets` directory. Of course, you can add your own configuration.
+if you already have `Sale` contract deployed you can specify it in the configuration (`saleAddress` property). In that case deployed contract will be used instead of deploying new one.
+If you want to deploy contract using another wallet - specify it in truffle config (`truffle.js`, `rinkeby` section).
 
 ```
 TARGET=ropsten npm run ropsten

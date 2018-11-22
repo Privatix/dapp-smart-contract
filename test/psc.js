@@ -147,34 +147,22 @@ contract('PSC', (accounts) => {
         });
     };
 
-
     it("I0a: cooperativeClose, standard use case, 0% fee", async () => {
 
-        const msg = function(length){
-            let res = '';
-            for(let i=0; i<length; i++){
-                res+= '_';
-            }
-            return res;
-        };
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
-        // gasUsage["token.approve"] = approve.receipt.gasUsed;
+        gasUsage["token.approve"] = approve.receipt.gasUsed;
 
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
-        // gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
+        gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
 
-        for(let i=1; i<64; i++){
-            const offer = msg(i);
-            const offering_hash = "0x" + abi.soliditySHA3(['string'],[offer]).toString('hex');
-            const offering = await psc.registerServiceOffering(offering_hash, 20, 10, 1, offer, {from:vendor});
-            gasUsage[i] = offering.receipt.gasUsed;
-        }
-        const _msg = "0x" + abi.soliditySHA3(['string'],['plyzfy3qicjjvmeg.onion']).toString('hex');
-        gasUsage['registerServiceOffering_res'] = JSON.stringify(await psc.registerServiceOffering(offering_hash, 20, 10, 1, _msg, {from:vendor}));
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        const offering_hash = "0x" + abi.soliditySHA3(['string'],[msg + '?']).toString('hex');
+        const registerService= await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
+        gasUsage['registerServiceOffering'] = registerService.receipt.gasUsed;
     });
-/*
+
     it("E1: createChannel/LogChannelCreated event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -185,7 +173,8 @@ contract('PSC', (accounts) => {
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
         holder.transaction = psc.createChannel(vendor, offering_hash, 20, {from:client});
@@ -203,7 +192,8 @@ contract('PSC', (accounts) => {
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        holder.transaction = psc.registerServiceOffering(offering_hash, 20, 10, 1, 'some_source', {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        holder.transaction = psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
@@ -219,7 +209,8 @@ contract('PSC', (accounts) => {
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
@@ -252,7 +243,8 @@ contract('PSC', (accounts) => {
         gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 200000, 10, 1, 'some_source', {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        const offering = await psc.registerServiceOffering(offering_hash, 200000, 10, 1, msg, {from:vendor});
         gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
 
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
@@ -295,7 +287,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -328,7 +321,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -361,7 +355,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -394,7 +389,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -425,7 +421,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -457,7 +454,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -493,7 +491,8 @@ contract('PSC', (accounts) => {
         gasUsage["psc.addBalanceERC20"] = block.receipt.gasUsed;
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
         gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
 
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
@@ -533,7 +532,8 @@ contract('PSC', (accounts) => {
         await psc.setNetworkFee(500, {from: owner})
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
         gasUsage["psc.registerServiceOffering"] = offering.receipt.gasUsed;
 
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
@@ -578,7 +578,8 @@ contract('PSC', (accounts) => {
         await prix_token.approve(psc.address, 1e8,{from:vendor});
         await psc.addBalanceERC20(1e8, {from:vendor});
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 1, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 1, 1, msg, {from:vendor});
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
 
@@ -598,7 +599,8 @@ contract('PSC', (accounts) => {
         const approve = await prix_token.approve(psc.address, 1e8,{from:vendor});
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
         const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
@@ -620,7 +622,8 @@ contract('PSC', (accounts) => {
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
         const ClientBlock = await psc.addBalanceERC20(1e8, {from:client});
@@ -635,7 +638,7 @@ contract('PSC', (accounts) => {
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
-*/
+
     it("I3: measuring gas consumption for other members:", async () => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
@@ -643,7 +646,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, 1, 'onion', {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -677,14 +681,15 @@ contract('PSC', (accounts) => {
         gasUsage["psc.balanceOf"] = await psc.balanceOf.estimateGas(client, {from:client});
 
         await skip(popup_period);
-        gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, 1, 'onion', {from:vendor});
-        gasUsage["psc.popupServiceOffering_res"] = JSON.stringify(await psc.popupServiceOffering(offering_hash, 1, 'plyzfy3qicjjvmeg.onion', {from:vendor}));
+        // gasUsage["psc.popupServiceOffering"] = await psc.popupServiceOffering.estimateGas(offering_hash, 1, msg, {from:vendor});
+        const popupService = await psc.popupServiceOffering(offering_hash, 1, msg, {from:vendor});
+        gasUsage["psc.popupServiceOffering"] = popupService.receipt.gasUsed;
 
         await skip(remove_period);
         gasUsage["psc.removeServiceOffering"] = await psc.removeServiceOffering.estimateGas(offering_hash, {from:vendor});
  
     });
-/*
+
     it("E2: topUpChannel/LogChannelToppedUp event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -696,7 +701,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -718,14 +724,15 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await skip(remove_period);
         holder.transaction = psc.removeServiceOffering(offering_hash, {from:vendor});
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
-*/
+
     it("E8: popupServiceOffering/LogOfferingPopedUp event triggering", async () => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
@@ -737,8 +744,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-
-        await psc.registerServiceOffering(offering_hash, 20, 10, 1, 'onion', {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -746,21 +753,22 @@ contract('PSC', (accounts) => {
         const channel = await psc.createChannel(vendor, offering_hash, 20, {from:client});
 
         await skip(popup_period);
-        holder.transaction = psc.popupServiceOffering(offering_hash, 1, 'onion', {from:vendor});
+        holder.transaction = psc.popupServiceOffering(offering_hash, 1, msg, {from:vendor});
 
         return Promise.all(holder.promises).then(() => holder.events.forEach(event => event.stopWatching()));
     });
-/*
+
     it("S1: check if provider try to publish offering with overflow in _min_deposit * _max_supply", async () => {
 
         await prix_token.approve(psc.address, 1e8,{from:vendor});
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const msg = 'plyzfy3qicjjvmeg.onion';
         // (2^191+1)*2 mod(2^192) == 2
         const min_deposit = web3.toBigNumber('0x800000000000000000000000000000000000000000000001');
-        chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, min_deposit, 2, {from:vendor}));
-        chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 2, 2, {from:vendor}));
+        chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, min_deposit, 2, 1, msg, {from:vendor}));
+        chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 2, 2, 1, msg, {from:vendor}));
  
     });
 
@@ -770,9 +778,10 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor}));
         await skip(1);
-        chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
+        chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor}));
  
     });
 
@@ -782,10 +791,11 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const msg = 'plyzfy3qicjjvmeg.onion';
         await skip(1);
-        chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 0, 2, {from:vendor}));
+        chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 0, 2, 1, msg, {from:vendor}));
         await skip(1);
-        chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 1, 2, {from:vendor}));
+        chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 1, 2, 1, msg, {from:vendor}));
  
     });
 
@@ -795,7 +805,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -811,7 +822,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(20, {from:client});
@@ -827,7 +839,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -857,7 +870,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -880,7 +894,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -904,8 +919,9 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const msg = 'plyzfy3qicjjvmeg.onion';
         const nonexistent_offering_hash = "0x" + abi.soliditySHA3(['string'],['ups']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -925,7 +941,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -946,7 +963,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -965,9 +983,10 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const msg = 'plyzfy3qicjjvmeg.onion';
         const nonexistent_offering_hash = "0x" + abi.soliditySHA3(['string'],['ups']).toString('hex');
 
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -984,7 +1003,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -1002,7 +1022,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         chaiAssert.isRejected(psc.removeServiceOffering(offering_hash, {from:vendor}));
         await skip(remove_period);
@@ -1016,15 +1037,16 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
+        const msg = 'plyzfy3qicjjvmeg.onion';
         const nonexistent_offering_hash = "0x" + abi.soliditySHA3(['string'],['ups']).toString('hex');
 
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await skip(popup_period);
 
-        chaiAssert.isRejected(psc.popupServiceOffering(nonexistent_offering_hash, {from:vendor}));
+        chaiAssert.isRejected(psc.popupServiceOffering(nonexistent_offering_hash, 1, msg, {from:vendor}));
         await skip(1);
-        chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
+        chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, 1, msg, {from:vendor}));
  
     });
 
@@ -1034,15 +1056,15 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
         await skip(popup_period);
-        chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
+        chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, 1, msg, {from:vendor}));
         await skip(1);
-        chaiAssert.isRejected(psc.popupServiceOffering(offering_hash, {from:vendor}));
+        chaiAssert.isRejected(psc.popupServiceOffering(offering_hash, 1, msg, {from:vendor}));
 
         await skip(popup_period);
-        chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor}));
+        chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, 1, msg, {from:vendor}));
     });
 
     it("S17: try to popup from someone else's name", async () => {
@@ -1051,12 +1073,12 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await skip(popup_period);
-        chaiAssert.isRejected(psc.popupServiceOffering(offering_hash, {from:client})); // actually must be from:vendor
-        chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, {from:vendor})); // should be ok 
+        chaiAssert.isRejected(psc.popupServiceOffering(offering_hash, 1, msg, {from:client})); // actually must be from:vendor
+        chaiAssert.isFulfilled(psc.popupServiceOffering(offering_hash, 1, msg, {from:vendor})); // should be ok
     });
 
     it('S18: trying to send money directly to contract (should throw exception)', async () => {
@@ -1074,7 +1096,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -1110,7 +1133,8 @@ contract('PSC', (accounts) => {
         await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         await prix_token.approve(psc.address, 1e8,{from:client});
         await psc.addBalanceERC20(1e8, {from:client});
@@ -1178,11 +1202,12 @@ contract('PSC', (accounts) => {
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 5, 'balance of vendor must be 5 prix');
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor}));
 
         await prix_token.approve(psc.address, 1e8,{from:vendor});
         await psc.addBalanceERC20(1e8, {from:vendor});
-        chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor}));
+        chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor}));
 
     });
 
@@ -1203,7 +1228,8 @@ contract('PSC', (accounts) => {
         const block = await psc.addBalanceERC20(1e8, {from:vendor});
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
-        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, {from:vendor});
+        const msg = 'plyzfy3qicjjvmeg.onion';
+        const offering = await psc.registerServiceOffering(offering_hash, 20, 10, 1, msg, {from:vendor});
 
         const ClientApprove = await prix_token.approve(psc.address, 1e8,{from:client});
 
@@ -1215,5 +1241,5 @@ contract('PSC', (accounts) => {
         assert.equal(retrievedOffering[3].toNumber(), 9, 'expected 9 free offering supplies');
 
     });
-*/
+
 });
