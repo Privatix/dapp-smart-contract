@@ -148,11 +148,11 @@ You can request ethers for free here:
 
 ## Example of deploy
 
-* Dev:
+* [Dev](scripts/deploy_dev.sh):
     ```bash
     ./scripts/deploy_dev.sh
     ```
-* Stage
+* [Stage](scripts/deploy_stage.sh):
     ```bash
     ./scripts/deploy_stage.sh
     ```
