@@ -110,7 +110,8 @@ Available targets you can see in `targets` directory. Setting the environment va
 
 # Deploy
 
-* `npm run rinkeby` deploys contract into rinkeby testnet.
+* `TARGET=dev|stage npm run rinkeby` deploys contract into rinkeby testnet.
+* `TARGET=dev|stage MNEMONIC='if you want use your wallet' npm run rinkeby`
 
 After deploying, abi files are saved to current directory (root of project).
 

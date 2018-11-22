@@ -8,8 +8,7 @@ require('babel-register')({
 
 const HDWalletProvider = require('truffle-hdwallet-provider')
 
-var mnemonic = "language core disease beach celery media mercy ready thing course modify fall lady bag carry";
-
+const mnemonic = process.env.MNEMONIC ? process.env.MNEMONIC : "language core disease beach celery media mercy ready thing course modify fall lady bag carry";
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -33,7 +32,6 @@ module.exports = {
             },
             network_id: 3,
             gas: 4712388,
-            // from: "0xA5020D791fb405BD2D516A2c0824e5bac0f764B8"
         },
         rinkeby:  {
             provider: function() {
@@ -41,14 +39,7 @@ module.exports = {
             },
             network_id: 4,
             gas: 7000000,
-            // from: "0xA5020D791fb405BD2D516A2c0824e5bac0f764B8"
         },
-        // testnet: {
-        //     provider: provider,
-        //      gasPrice: 200 * 10**8,
-        //      gas: 3000000,
-        //     network_id: 3 // official id of the ropsten network
-        // },
         coverage: {
             host: "localhost",
             network_id: "*",
