@@ -88,9 +88,10 @@ Install dependencies:
 npm install
 ```
 
-Install truffle:
-```
-npm install -g truffle
+Install truffle v 4.1.13:
+
+```bash
+npm install truffle@4.1.13 -g
 ```
 
 # Tests
@@ -106,41 +107,57 @@ Tests are run using the following command:
 ```
 TARGET=test npm run test
 ```
-Available targets you can see in `targets` directory. Setting the environment variable may differ on your system.
+Available targets you can see in [targets](targets) directory. 
+Setting the environment variable may differ on your system.
 
 # Deploy
 
-There are three npm scripts for deploy — `npm run deploy`, `npm run ropsten` and `npm run rinkeby`.
+Please, use `rinkeby` script to deploy contract to the testnet:
 
-* `npm run deploy` script deploys contract to local_geth network. Although it seems not much useful it provides information about deploys costs, you can see them in ganache.log.
-* `npm run ropsten` deploys contract into ropsten testnet. Because of ropsten's gas limit (4.7m) you can't deploy develop version of contract (target=dev).
-* `npm run rinkeby` deploys contract into rinkeby testnet. Rinkeby's gas limit is much more (~7m) wich makes possible deploy develop version of contract.
+```bash
+npm run rinkeby
+```
+
+Options:
+* `TARGET=<target>`, where `<target>` is `dev` or `stage`:
+    ```bash
+    TARGET=dev npm run rinkeby
+    ```
+* `MNEMONIC="<mnemonic phrase>"`, where `<mnemonic phrase>` is 12 word mnemonic 
+which addresses are created from.
 
 After deploying, abi files are saved to current directory (root of project).
 
 It's necessary to point out which configuration you want to use. Available configurations are:
 
 * `dev`
-* `test`
-* `ropsten`
-* `rinkeby`
+* `stage`
 
-You can see them in `targets` directory. Of course, you can add your own configuration.
+You can see them in [targets](targets) directory. 
+Of course, you can add your own configuration.
 
-```
-TARGET=ropsten npm run ropsten
-TARGET=test npm run deploy
-```
+if you already have `Sale` contract deployed you can specify it in the configuration 
+(`saleAddress` property). In that case deployed contract will be used instead of 
+deploying new one.
 
-If you have already deployed Sale contract you can use it when deploying PSC contract — just set `saleAddress` property in configuration.
-
-Before deploying make sure you have enough funds on wallet (1 eth will be enough). Deploy scripts use wallet with `0xA5020D791fb405BD2D516A2c0824e5bac0f764B8` address via infura (see `truffle.js`).
+Before deploying make sure you have enough funds on wallet (1 eth will be enough). 
 
 You can request ethers for free here:
 
 * [metamask.io](https://faucet.metamask.io/) (make sure you have Metamask extension installed)
 * [ropsten.be](http://faucet.ropsten.be:3001/)
 
+## Example of deploy
+
+* [Dev](scripts/deploy_dev.sh):
+    ```bash
+    ./scripts/deploy_dev.sh
+    ```
+* [Stage](scripts/deploy_stage.sh):
+    ```bash
+    ./scripts/deploy_stage.sh
+    ```
+ 
 # Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
