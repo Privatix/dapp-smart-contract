@@ -1,0 +1,10 @@
+# about codeowners:
+# https://help.github.com/articles/about-codeowners/
+
+# all changes
+*               @gonzazoid @sofabeat
+
+# notify drew2a about changes in scripts and settings
+/.github/       @drew2a
+*.md            @drew2a
+/scripts/       @drew2a
