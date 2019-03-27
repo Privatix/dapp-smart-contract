@@ -80,7 +80,7 @@ contract('PSC', (accounts) => {
 
         const message_hash =
             abi.soliditySHA3(
-                ['string','address','uint32', 'bytes32', 'uint192','address']
+                ['string','address','uint32', 'bytes32', 'uint64','address']
                ,[
                     'Privatix: sender balance proof signature',
                     reciver,
@@ -97,7 +97,7 @@ contract('PSC', (accounts) => {
     const getCloseSignature = function (sender, blockNumber, offering_hash, balance, contractAddress){
         const message_hash =
             abi.soliditySHA3(
-                ['string','address','uint32', 'bytes32', 'uint192','address']
+                ['string','address','uint32', 'bytes32', 'uint64','address']
                ,[
                     'Privatix: receiver closing signature',
                     sender,
@@ -765,8 +765,8 @@ contract('PSC', (accounts) => {
 
         const offering_hash = "0x" + abi.soliditySHA3(['string'],['offer']).toString('hex');
         const msg = 'plyzfy3qicjjvmeg.onion';
-        // (2^191+1)*2 mod(2^192) == 2
-        const min_deposit = web3.toBigNumber('0x800000000000000000000000000000000000000000000001');
+        // (2^63+1)*2 mod(2^64) == 2
+        const min_deposit = web3.toBigNumber('0x8000000000000001');
         chaiAssert.isRejected(psc.registerServiceOffering(offering_hash, min_deposit, 2, 1, msg, {from:vendor}));
         chaiAssert.isFulfilled(psc.registerServiceOffering(offering_hash, 2, 2, 1, msg, {from:vendor}));
  

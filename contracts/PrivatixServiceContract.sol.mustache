@@ -3,11 +3,11 @@ pragma solidity ^0.4.18;
 import './ERC20.sol';
 import './lib/ECVerify.sol';
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
-import './lib/SafeMath192.sol';
+import './lib/SafeMath64.sol';
 
 /// @title Privatix Service Contract.
 contract PrivatixServiceContract is Ownable {
-    using SafeMath192 for uint192;
+    using SafeMath64 for uint64;
 
     /*
      *  Data structures
@@ -35,18 +35,18 @@ contract PrivatixServiceContract is Ownable {
 
     // We temporarily limit total token deposits in a channel to 300 PRIX.
     // This is just for the bug bounty release, as a safety measure.
-    uint256 public constant channel_deposit_bugbounty_limit = 10 ** 8 * 300;
+    uint64 public constant channel_deposit_bugbounty_limit = 10 ** 8 * 300;
 
     ERC20 public token;
 
     mapping (bytes32 => Channel) public channels;
     mapping (bytes32 => ClosingRequest) public closing_requests;
-    mapping (address => uint192) public internal_balances;
+    mapping (address => uint64) public internal_balances;
     mapping(bytes32 => ServiceOffering) private service_offering_s;
 
     // 52 bytes
     struct ServiceOffering{
-      uint192 min_deposit;  // bytes24 - Minimum deposit that Client should place to open state channel.
+      uint64 min_deposit;  // bytes8 - Minimum deposit that Client should place to open state channel.
       address agent_address; //bytes20 - Address of Agent.
       uint16 max_supply; // bytes2 - Maximum supply of services according to service offerings.
       uint16 current_supply; // bytes2 - Currently remaining available supply.
@@ -55,9 +55,9 @@ contract PrivatixServiceContract is Ownable {
 
     // 28 bytes
     struct Channel {
-        // uint192 is the maximum uint size needed for deposit based on a
-        // 10^8 * 10^18 token totalSupply.
-        uint192 deposit;
+        // uint64 is the maximum uint size needed for deposit based on a
+        // log2(10^8 * 1275455 token totalSupply) = 46.85.
+        uint64 deposit;
 
         // Block number at which the channel was opened. Used in creating
         // a unique identifier for the channel between a sender and receiver.
@@ -69,7 +69,7 @@ contract PrivatixServiceContract is Ownable {
     // 28 bytes
     struct ClosingRequest {
         // Number of tokens owed by the Client when closing the channel.
-        uint192 closing_balance;
+        uint64 closing_balance;
 
         // Block number at which the remove period ends, in case it has been initiated.
         uint32 settle_block_number;
@@ -83,23 +83,23 @@ contract PrivatixServiceContract is Ownable {
         address indexed _agent,
         address indexed _client,
         bytes32 indexed _offering_hash,
-        uint192 _deposit);
+        uint64 _deposit);
     event LogChannelToppedUp(
         address indexed _agent,
         address indexed _client,
         bytes32 indexed _offering_hash,
         uint32 _open_block_number,
-        uint192 _added_deposit);
+        uint64 _added_deposit);
     event LogChannelCloseRequested(
         address indexed _agent,
         address indexed _client,
         bytes32 indexed _offering_hash,
         uint32 _open_block_number,
-        uint192 _balance);
+        uint64 _balance);
     event LogOfferingCreated(
         address indexed _agent,
         bytes32 indexed _offering_hash,
-        uint256 indexed _min_deposit,
+        uint64 indexed _min_deposit,
         uint16 _current_supply,
         uint8 _source_type,
         string _source);
@@ -109,7 +109,7 @@ contract PrivatixServiceContract is Ownable {
     event LogOfferingPopedUp(
       address indexed _agent,
       bytes32 indexed _offering_hash,
-      uint256 indexed _min_deposit,
+      uint64 indexed _min_deposit,
       uint16 _current_supply,
       uint8 _source_type,
       string _source);
@@ -118,13 +118,13 @@ contract PrivatixServiceContract is Ownable {
       address indexed _client,
       bytes32 indexed _offering_hash,
       uint32 _open_block_number,
-      uint192 _balance);
+      uint64 _balance);
     event LogUnCooperativeChannelClose(
       address indexed _agent,
       address indexed _client,
       bytes32 indexed _offering_hash,
       uint32 _open_block_number,
-      uint192 _balance);
+      uint64 _balance);
 
     /*
      *  Modifiers
@@ -173,7 +173,7 @@ contract PrivatixServiceContract is Ownable {
 
     /// @notice Creates a new internal balance by transferring from PTC ERC20 token.
     /// @param _value Token transfered to internal balance.
-    function addBalanceERC20(uint192 _value) external {
+    function addBalanceERC20(uint64 _value) external {
       internal_balances[msg.sender] = internal_balances[msg.sender].add(_value);
       // transferFrom deposit from sender to contract
       // ! needs prior approval on token contract.
@@ -182,14 +182,14 @@ contract PrivatixServiceContract is Ownable {
 
     /// @notice Transfers tokens from internal balance to PTC ERC20 token.
     /// @param _value Token amount to return.
-    function returnBalanceERC20(uint192 _value) external {
+    function returnBalanceERC20(uint64 _value) external {
       internal_balances[msg.sender] = internal_balances[msg.sender].sub(_value); // test S21
       require(token.transfer(msg.sender, _value));
     }
 
     /// @notice Returns user internal balance.
     function balanceOf(address _address) external view
-    returns(uint256)
+    returns(uint64)
     {
       return (internal_balances[_address]); // test U1
     }
@@ -212,7 +212,7 @@ contract PrivatixServiceContract is Ownable {
     /// @param _agent_address The address of Agent that receives tokens.
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
     /// @param _deposit The amount of tokens that the Client escrows.
-    function createChannel(address _agent_address, bytes32 _offering_hash, uint192 _deposit) external {
+    function createChannel(address _agent_address, bytes32 _offering_hash, uint64 _deposit) external {
         require(_deposit >= service_offering_s[_offering_hash].min_deposit); // test S4
         require(internal_balances[msg.sender] >= _deposit); // test S5
 
@@ -232,7 +232,7 @@ contract PrivatixServiceContract is Ownable {
         address _agent_address,
         uint32 _open_block_number,
         bytes32 _offering_hash,
-        uint192 _added_deposit)
+        uint64 _added_deposit)
         external
     {
         updateInternalBalanceStructs(
@@ -259,7 +259,7 @@ contract PrivatixServiceContract is Ownable {
         address _agent_address,
         uint32 _open_block_number,
         bytes32 _offering_hash,
-        uint192 _balance,
+        uint64 _balance,
         bytes _balance_msg_sig,
         bytes _closing_sig)
         external
@@ -287,7 +287,7 @@ contract PrivatixServiceContract is Ownable {
         address _agent_address,
         uint32 _open_block_number,
         bytes32 _offering_hash,
-        uint192 _balance)
+        uint64 _balance)
         external
     {
         bytes32 key = getKey(msg.sender, _agent_address, _open_block_number, _offering_hash);
@@ -319,7 +319,7 @@ contract PrivatixServiceContract is Ownable {
 
         // Make sure the challenge_period has ended
         require(block.number > closing_requests[key].settle_block_number); // test S8
-        uint192 balance = closing_requests[key].closing_balance;
+        uint64 balance = closing_requests[key].closing_balance;
         settleChannel(msg.sender, _agent_address, _open_block_number, _offering_hash,
            closing_requests[key].closing_balance
         );
@@ -343,7 +343,7 @@ contract PrivatixServiceContract is Ownable {
         bytes32 _offering_hash)
         external
         view
-        returns (uint192, uint32, uint192)
+        returns (uint64, uint32, uint64)
     {
         bytes32 key = getKey(_client_address, _agent_address, _open_block_number, _offering_hash);
 
@@ -357,7 +357,7 @@ contract PrivatixServiceContract is Ownable {
     function getOfferingInfo(bytes32 offering_hash)
         external
         view
-        returns(address, uint192, uint16, uint16, uint32)
+        returns(address, uint64, uint16, uint16, uint32)
     {
         ServiceOffering memory offering = service_offering_s[offering_hash];
         return (offering.agent_address, offering.min_deposit, offering.max_supply, offering.current_supply, offering.update_block_number);
@@ -375,7 +375,7 @@ contract PrivatixServiceContract is Ownable {
     /// @param _max_supply Maximum supply of services according to service offerings.
     function registerServiceOffering (
      bytes32 _offering_hash,
-     uint192 _min_deposit,
+     uint64 _min_deposit,
      uint16 _max_supply,
      uint8 _source_type,
      string _source)
@@ -449,7 +449,7 @@ contract PrivatixServiceContract is Ownable {
         address _address,
         uint32 _open_block_number,
         bytes32 _offering_hash,
-        uint192 _balance,
+        uint64 _balance,
         bytes _msg_sig,
         bool _type)
         public
@@ -551,7 +551,7 @@ contract PrivatixServiceContract is Ownable {
     /// @param _agent_address The address of Agent that receives tokens.
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
     /// @param _deposit The amount of tokens that the Client escrows.
-    function createChannelPrivate(address _client_address, address _agent_address, bytes32 _offering_hash, uint192 _deposit) private {
+    function createChannelPrivate(address _client_address, address _agent_address, bytes32 _offering_hash, uint64 _deposit) private {
         require(_deposit <= channel_deposit_bugbounty_limit);
 
         uint32 open_block_number = uint32(block.number);
@@ -579,7 +579,7 @@ contract PrivatixServiceContract is Ownable {
         address _agent_address,
         uint32 _open_block_number,
         bytes32 _offering_hash,
-        uint192 _added_deposit)
+        uint64 _added_deposit)
         private
     {
         require(_added_deposit > 0);
@@ -610,7 +610,7 @@ contract PrivatixServiceContract is Ownable {
         address _agent_address,
         uint32 _open_block_number,
         bytes32 _offering_hash,
-        uint192 _balance)
+        uint64 _balance)
         private
     {
         bytes32 key = getKey(_client_address, _agent_address, _open_block_number, _offering_hash);
@@ -626,7 +626,7 @@ contract PrivatixServiceContract is Ownable {
 
         require(increaseOfferingSupply(_agent_address, _offering_hash));
         // Send _balance to the receiver, as it is always <= deposit
-        uint192 fee = 0;
+        uint64 fee = 0;
         if(network_fee > 0) {
             fee = (_balance/100000)*network_fee; // it's safe because network_fee can't be more than 1000
             internal_balances[network_fee_address] = internal_balances[network_fee_address].add(fee);
