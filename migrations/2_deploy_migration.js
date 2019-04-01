@@ -2,8 +2,6 @@
 const fs = require('fs');
 
 const ERC20 = artifacts.require("./ERC20.sol");
-// const SafeMath = artifacts.require("zeppelin-solidity/contracts/math/SafeMath.sol");
-const SafeMath192 = artifacts.require("./lib/SafeMath192.sol");
 const ECVerify = artifacts.require("./lib/ECVerify.sol");
 const Ownable = artifacts.require("openzeppelin-solidity/contracts/ownership/Ownable.sol");
 
