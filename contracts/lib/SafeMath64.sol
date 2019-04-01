@@ -5,16 +5,16 @@ pragma solidity ^0.4.18;
  * @title SafeMath
  * @dev Math operations with safety checks that throw on error
  */
-library SafeMath192 {
+library SafeMath64 {
 
   /**
   * @dev Multiplies two numbers, throws on overflow.
   */
-  function mul(uint192 a, uint192 b) internal pure returns (uint192) {
+  function mul(uint64 a, uint64 b) internal pure returns (uint64) {
     if (a == 0) {
       return 0;
     }
-    uint192 c = a * b;
+    uint64 c = a * b;
     assert(c / a == b);
     return c;
   }
@@ -22,7 +22,7 @@ library SafeMath192 {
   /**
   * @dev Subtracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
   */
-  function sub(uint192 a, uint192 b) internal pure returns (uint192) {
+  function sub(uint64 a, uint64 b) internal pure returns (uint64) {
     assert(b <= a);
     return a - b;
   }
@@ -30,8 +30,8 @@ library SafeMath192 {
   /**
   * @dev Adds two numbers, throws on overflow.
   */
-  function add(uint192 a, uint192 b) internal pure returns (uint192) {
-    uint192 c = a + b;
+  function add(uint64 a, uint64 b) internal pure returns (uint64) {
+    uint64 c = a + b;
     assert(c >= a);
     return c;
   }
