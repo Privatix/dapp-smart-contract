@@ -18,8 +18,8 @@ script:
 cache:
   directories:
     - "node_modules"
-#
-#notifications:
-#  slack:
-#    rooms:
-#    - privatix:ntmw2wh4PAHoodqtMc95KFDt#dapp-tech
+
+notifications:
+  slack:
+    rooms:
+    - privatix:ntmw2wh4PAHoodqtMc95KFDt#dapp-tech
