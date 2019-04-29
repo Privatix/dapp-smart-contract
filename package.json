@@ -7,6 +7,7 @@
     "test": "test"
   },
   "scripts": {
+    "postinstall": "npm audit fix",
     "pretest": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol",
     "test": "ganache-cli > ./ganache.log 2>&1 & truffle test ./test/psc.js --compile-all --network local_geth && sudo kill -9 $(lsof -ti :8545)",
     "rinkeby": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && TARGET=${TARGET} truffle migrate --network rinkeby",
@@ -37,7 +38,7 @@
     "multer": "^1.3.0",
     "solidity-sha3": "^0.4.1",
     "truffle-hdwallet-provider": "0.0.3",
-    "web3": "^1.0.0-beta.34",
+    "web3": "^1.0.0-beta.52",
     "openzeppelin-solidity": "^1.10.0"
   },
   "babel": {
