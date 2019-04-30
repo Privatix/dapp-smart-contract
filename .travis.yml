@@ -9,6 +9,7 @@ before_install:
   - npm i -g ganache-cli
   - npm i -g truffle@4.1.13
   - npm i -g mustache
+  - npm i babel-polyfill
 
 install:
   - npm i --package-lock-only
