@@ -1,12 +1,6 @@
+[![Build Status](https://travis-ci.org/Privatix/dapp-smart-contract.svg?branch=master)](https://travis-ci.org/Privatix/dapp-smart-contract)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPrivatix%2Fdapp-smart-contract?ref=badge_shield)
 [![Maintainability](https://api.codeclimate.com/v1/badges/93d283853c41377f8256/maintainability)](https://codeclimate.com/github/Privatix/dapp-smart-contract/maintainability)
-[![pullreminders](https://pullreminders.com/badge.svg)](https://pullreminders.com?ref=badge)
-
-[master](https://github.com/Privatix/dapp-smart-contract):
-<img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES">
-
-[develop](https://github.com/Privatix/dapp-smart-contract/tree/develop):
-<img align="center" src="https://ci.privatix.net/plugins/servlet/wittified/build-status/SC-TES23">
 
 # Smart contracts
 

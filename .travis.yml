@@ -1,0 +1,27 @@
+language: node_js
+
+node_js:
+  - 10.13.0
+
+sudo: required
+
+before_install:
+  - npm i -g ganache-cli
+  - npm i -g truffle@4.1.13
+  - npm i -g mustache
+
+install:
+  - npm i --package-lock-only
+  - npm i
+
+script:
+  - TARGET=test npm run test
+
+cache:
+  directories:
+    - "node_modules"
+
+notifications:
+  slack:
+    rooms:
+    - privatix:ntmw2wh4PAHoodqtMc95KFDt#dapp-tech
