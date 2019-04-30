@@ -10,7 +10,7 @@ before_install:
   - npm i -g truffle@4.1.13
 
 install:
-  - npm i
+  - npm i --package-lock-only
 
 script:
   - TARGET=test npm run test
