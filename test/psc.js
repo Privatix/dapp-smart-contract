@@ -111,6 +111,36 @@ contract('PSC', (accounts) => {
         return message_hash;
     }
 
+    const consistOf = function(obj, keys){
+        const eventKeys = Object.keys(obj);
+        return eventKeys.every(key => keys.includes(key)) && keys.every(key => eventKeys.includes(key));
+    };
+
+    const isWellFormedEvent = function(eventName, event){
+        if(eventName !== event.event){
+            return false;
+        }
+        switch(eventName){
+            case 'LogChannelCreated':
+                return consistOf(event.args, ['_agent', '_client', '_offering_hash', '_deposit']);
+            case 'LogChannelToppedUp':
+                return consistOf(event.args, ['_agent', '_client', '_offering_hash', '_open_block_number', '_added_deposit']);
+            case 'LogChannelCloseRequested':
+                return consistOf(event.args, ['_agent', '_client', '_offering_hash', '_open_block_number', '_balance']);
+            case 'LogOfferingCreated':
+                return consistOf(event.args, ['_agent', '_offering_hash', '_min_deposit', '_current_supply', '_source_type', '_source']);
+            case 'LogOfferingDeleted':
+                return consistOf(event.args, ['_agent', '_offering_hash']);
+            case 'LogOfferingPopedUp':
+                return consistOf(event.args, ['_agent', '_offering_hash', '_min_deposit', '_current_supply', '_source_type', '_source']);
+            case 'LogCooperativeChannelClose':
+                return consistOf(event.args, ['_agent', '_client', '_offering_hash', '_open_block_number', '_balance']);
+            case 'LogUnCooperativeChannelClose':
+                return consistOf(event.args, ['_agent', '_client', '_offering_hash', '_open_block_number', '_balance']);
+            default:
+                return false;
+        }
+    }
     const eventChecker = function(_holder, eventName){
         // there are at least two ways to check event triggering - looking into transaction's result
         // or registering your own listener to watch events
@@ -126,6 +156,7 @@ contract('PSC', (accounts) => {
                     // not always, see E7 test
                     // assert.equal(result.transactionHash, transaction.receipt.transactionHash, "hashes must be equal");
                     expect(transaction.logs.some( log =>  log.event === eventName && result.event === eventName)).to.be.true;
+                    expect(isWellFormedEvent(eventName, result)).to.be.true;
                     holder.handlers[eventName].resolve();
                 });
             }
