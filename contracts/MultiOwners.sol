@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.5.8;
 
 
 contract MultiOwners {
@@ -17,11 +17,11 @@ contract MultiOwners {
         _; 
     }
 
-    function isOwner() constant public returns (bool) {
+    function isOwner() view public returns (bool) {
         return owners[msg.sender] ? true : false;
     }
 
-    function checkOwner(address maybe_owner) constant public returns (bool) {
+    function checkOwner(address maybe_owner) view public returns (bool) {
         return owners[maybe_owner] ? true : false;
     }
 

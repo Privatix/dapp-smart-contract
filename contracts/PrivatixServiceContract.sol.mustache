@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.5.8;
 
 import './ERC20.sol';
 import './lib/ECVerify.sol';
@@ -148,9 +148,9 @@ contract PrivatixServiceContract is Ownable {
       uint32 _remove_period,
       uint32 _challenge_period
       ) public {
-        require(_token_address != 0x0);
+        require(_token_address != address(0x0));
         require(addressHasCode(_token_address));
-        require(_network_fee_address != 0x0);
+        require(_network_fee_address != address(0x0));
         require(_remove_period >= {{ remove_period }});
         require(_popup_period >= {{ popup_period }});
         require(_challenge_period >= {{ challenge_period }});
@@ -260,8 +260,8 @@ contract PrivatixServiceContract is Ownable {
         uint32 _open_block_number,
         bytes32 _offering_hash,
         uint64 _balance,
-        bytes _balance_msg_sig,
-        bytes _closing_sig)
+        bytes calldata _balance_msg_sig,
+        bytes calldata _closing_sig)
         external
     {
         // Derive Client address from signed balance proof
@@ -378,7 +378,7 @@ contract PrivatixServiceContract is Ownable {
      uint64 _min_deposit,
      uint16 _max_supply,
      uint8 _source_type,
-     string _source)
+     string calldata _source)
      external
     {
       require(service_offering_s[_offering_hash].update_block_number == 0); // Service offering not exists, test S2
@@ -420,7 +420,7 @@ contract PrivatixServiceContract is Ownable {
     function popupServiceOffering (
         bytes32 _offering_hash,
         uint8 _source_type,
-        string _source)
+        string calldata _source)
     external
     {
       require(service_offering_s[_offering_hash].update_block_number > 0); // Service offering already exists, test S16
@@ -450,7 +450,7 @@ contract PrivatixServiceContract is Ownable {
         uint32 _open_block_number,
         bytes32 _offering_hash,
         uint64 _balance,
-        bytes _msg_sig,
+        bytes memory _msg_sig,
         bool _type)
         public
         view
@@ -459,16 +459,16 @@ contract PrivatixServiceContract is Ownable {
         // The hashed strings should be kept in sync with this function's parameters
         // (variable names and types).
         bytes32 message_hash =
-        keccak256("\x19Ethereum Signed Message:\n32",
-            keccak256(
+        keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32",
+            keccak256(abi.encodePacked(
                 _type ? 'Privatix: sender balance proof signature' : 'Privatix: receiver closing signature',
                 _address,
                 _open_block_number,
                 _offering_hash,
                 _balance,
                 address(this)
-            )
-        );
+            ))
+        ));
 
         // Derive address from signature
         address signer = ECVerify.ecverify(message_hash, _msg_sig);
@@ -491,7 +491,7 @@ contract PrivatixServiceContract is Ownable {
         pure
         returns (bytes32 data)
     {
-        return keccak256(_client_address, _agent_address, _open_block_number, _offering_hash);
+        return keccak256(abi.encodePacked(_client_address, _agent_address, _open_block_number, _offering_hash));
     }
 
     /*

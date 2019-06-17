@@ -1,8 +1,8 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.5.8;
 
 library ECVerify {
 
-    function ecverify(bytes32 hash, bytes signature) internal pure returns (address signature_address) {
+    function ecverify(bytes32 hash, bytes memory signature) internal pure returns (address signature_address) {
         require(signature.length == 65);
 
         bytes32 r;
@@ -30,7 +30,7 @@ library ECVerify {
         signature_address = ecrecover(hash, v, r, s);
 
         // ecrecover returns zero on error
-        require(signature_address != 0x0);
+        require(signature_address != address(0x0));
 
         return signature_address;
     }

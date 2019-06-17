@@ -1,8 +1,9 @@
+const Web3 = require("web3");
 require("babel-polyfill");
 require('babel-register')({
     // Ignore everything in node_modules except node_modules/zeppelin-solidity.
     presets: ["es2015"],
-    plugins: ["syntax-async-functions","transform-regenerator"],
+    plugins: ["syntax-async-functions", "transform-regenerator" /*, "truffle-security" */],
     ignore: /node_modules\/(?!openzeppelin-solidity)/,
 });
 
@@ -12,6 +13,7 @@ const mnemonic = process.env.MNEMONIC;
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
+  plugins: [ "truffle-security" ],
   deploy: [
         "Sale"
     ],
@@ -24,7 +26,9 @@ module.exports = {
         local_geth: {
             host: 'localhost',
             port: 8545,
-            network_id: 15
+//            network_id: 15
+//            provider: new Web3.providers.WebsocketProvider('ws://127.0.0.1:8545'),
+            network_id: '*'
         },
         ropsten:  {
             provider: function() {
@@ -50,6 +54,9 @@ module.exports = {
     },
     build: "webpack",
     mocha: {
-        reporter: "xunit-file"
+        reporter: "xunit",
+        reporterOptions: {
+          output: "xunit.xml"
+        }
     }
 };

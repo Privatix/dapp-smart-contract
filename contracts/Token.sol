@@ -1,9 +1,9 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.5.8;
 
-import 'openzeppelin-solidity/contracts/token/ERC20/MintableToken.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol';
 
 
-contract Token is MintableToken {
+contract Token is ERC20Mintable {
 
     string public constant name = 'Privatix';
     string public constant symbol = 'PRIX';

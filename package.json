@@ -25,21 +25,14 @@
     "babel-preset-stage-2": "^6.24.1",
     "babel-preset-stage-3": "^6.17.0",
     "babel-register": "^6.23.0",
-    "body-parser": "^1.18.2",
-    "chai": "^4.1.2",
-    "chai-as-promised": "^7.1.1",
     "ethereumjs-abi": "^0.6.5",
-    "ethereumjs-util": "^5.1.4",
-    "express": "^4.16.2",
-    "ganache-cli": "^6.0.3",
+    "ganache-cli": "^6.4.3",
     "keccak": "^1.4.0",
-    "mocha": "^5.0.1",
     "moment": "^2.18.1",
-    "multer": "^1.3.0",
-    "solidity-sha3": "^0.4.1",
-    "truffle-hdwallet-provider": "0.0.3",
+    "openzeppelin-solidity": "^2.3.0",
+    "truffle-hdwallet-provider": "1.0.10",
     "web3": "^1.0.0-beta.52",
-    "openzeppelin-solidity": "^1.10.0"
+    "xunit-file": "^1.0.0"
   },
   "babel": {
     "babelrc": true,
@@ -49,7 +42,6 @@
   },
   "devDependencies": {
     "mocha-junit-reporter": "^1.17.0",
-    "mustache": "^2.3.0",
-    "xunit-file": "^1.0.0"
+    "mustache": "^2.3.0"
   }
 }
