@@ -39,7 +39,7 @@ module.exports = {
             provider: function() {
                 return new HDWalletProvider(mnemonic, "https://mainnet.infura.io/v3/bf0d30717bb8469aae7b3ea09d8f1dd9");
             },
-            network_id: *,
+            network_id: '*',
             gas: 8000000,
         }
     },
