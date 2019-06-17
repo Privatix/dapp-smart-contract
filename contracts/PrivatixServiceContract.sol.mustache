@@ -203,7 +203,7 @@ contract PrivatixServiceContract is Ownable {
     /// @notice Change network fee value. It is limited from 0 to 1%.
     /// @param  _network_fee Fee that goes to network_fee_address from each closed channel balance.
     function setNetworkFee(uint32 _network_fee) external onlyOwner { // test S22
-        require(_network_fee <= 1000); // test S23
+        require(_network_fee <= 10000); // test S23
         network_fee = _network_fee;
     }
 
@@ -628,7 +628,7 @@ contract PrivatixServiceContract is Ownable {
         // Send _balance to the receiver, as it is always <= deposit
         uint64 fee = 0;
         if(network_fee > 0) {
-            fee = (_balance/100000)*network_fee; // it's safe because network_fee can't be more than 1000
+            fee = (_balance/100000)*network_fee; // it's safe because network_fee can't be more than 10000
             internal_balances[network_fee_address] = internal_balances[network_fee_address].add(fee);
             _balance -= fee;
         }

@@ -1184,9 +1184,9 @@ contract('PSC', (accounts) => {
 
     });
 
-    it("S23: check if fee is more than 1% (1000)", async () => {
+    it("S23: check if fee is more than 10% (10000)", async () => {
 
-        await isRejected(psc.setNetworkFee(1001, {from: owner}));
+        await isRejected(psc.setNetworkFee(10001, {from: owner}));
 
     });
 
