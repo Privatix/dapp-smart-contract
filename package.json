@@ -11,6 +11,7 @@
     "pretest": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol",
     "test": "ganache-cli > ./ganache.log 2>&1 & truffle test ./test/psc.js --compile-all --network local_geth && sudo kill -9 $(lsof -ti :8545)",
     "rinkeby": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && TARGET=${TARGET} truffle migrate --network rinkeby",
+    "mainnet": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && TARGET=${TARGET} truffle migrate --network mainnet",
     "stop": "sudo kill -9 $(lsof -ti :8545)",
     "env": "echo $TARGET"
   },
