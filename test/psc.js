@@ -109,7 +109,6 @@ contract('PSC', (accounts) => {
         return message_hash;
     }
 
-
     const consistOf = function(obj, keys){
         const eventKeys = Object.keys(obj);
         return keys.every(key => eventKeys.includes(key));
