@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity 0.5.8;
 
 import './Token.sol';
 import './MultiOwners.sol';
@@ -62,7 +62,7 @@ contract Sale is MultiOwners {
 
     constructor(uint256 _startTime, address _wallet) public {
         require(_startTime >=  now);
-        require(_wallet != 0x0);
+        require(_wallet != address(0x0));
 
         token = new Token();
 
@@ -72,7 +72,7 @@ contract Sale is MultiOwners {
         minimalEther = 1e16; // 0.01 ether
         minFreePrixByTrans = 1; // 0.00000001 prix
         maxFreePrixByTrans = 10e8; //10 prix
-        endTime = _startTime + 10 years;
+        endTime = _startTime + 10 * 365 days;
         weiPerToken = 1e18 / 100e8; // token price
     }
 
@@ -80,7 +80,7 @@ contract Sale is MultiOwners {
     /*
      * @dev fallback for processing ether
      */
-    function() public payable {
+    function() payable external {
         return buyTokens(msg.sender);
     }
 
@@ -91,7 +91,7 @@ contract Sale is MultiOwners {
     function buyTokens(address contributor) payable public {
         uint256 amount = msg.value / weiPerToken;
   
-        require(contributor != 0x0) ;
+        require(contributor != address(0x0)) ;
         require(minimalEther <= msg.value);
         //require(minPrixByTrans <= amount && maxPrixByTrans >= amount);
 
@@ -100,7 +100,7 @@ contract Sale is MultiOwners {
     }
 
     function getFreeTokens(address contributor, uint256 amount) public {
-        if (contributor == 0x0) {
+        if (contributor == address(0x0)) {
             contributor = msg.sender;
         }
         require(minFreePrixByTrans <= amount && maxFreePrixByTrans >= amount);
@@ -110,7 +110,7 @@ contract Sale is MultiOwners {
     }
 
     // @return true if crowdsale event has ended
-    function running() public constant returns (bool) {
+    function running() public view returns (bool) {
         return now >= startTime && !(now > endTime);
     }
 }

@@ -112,7 +112,14 @@ You can request ethers for free here:
     ```bash
     ./scripts/deploy_stage.sh
     ```
- 
+
+Use `mainnet` script to deploy contract to the mainnet:
+
+```bash
+TARGET=mainnet MNEMONIC='your mnemonic' npm run mainnet
+```
+
+
 # Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
