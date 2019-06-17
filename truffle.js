@@ -14,6 +14,11 @@ const mnemonic = process.env.MNEMONIC;
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   plugins: [ "truffle-security" ],
+  compilers: {
+    solc: {
+      version: "0.5.8"
+    }
+  },
   deploy: [
         "Sale"
     ],
