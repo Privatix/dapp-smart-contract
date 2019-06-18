@@ -6,7 +6,6 @@ node_modules
 *.swp
 *.log
 PrivatixServiceContract.sol
-package-lock.json
 *.abi
 xunit.xml
 

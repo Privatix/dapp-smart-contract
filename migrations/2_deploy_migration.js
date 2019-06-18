@@ -1,4 +1,3 @@
-// 15387feb21221353f149073f2ab8f97076f44c29 
 const fs = require('fs');
 
 const ERC20 = artifacts.require("./ERC20.sol");
@@ -25,15 +24,18 @@ function save(abi, name){
 
 module.exports = async function(deployer, network, accounts) {
 
-    const deploy = function(tokenContract){
-        tokenContract.token().then(function(token){
-            save(JSON.stringify(token, null, '\t'), "./token.json");
-            deployer.deploy(PSC, token, accounts[0], config.popup_period, config.remove_period, config.challenge_period).then(saveAbi);
-        });
+    const deploy = async function(tokenContract){
+        const token = await tokenContract.token();
+        return deployer.deploy(PSC, token, accounts[0], config.popup_period, config.remove_period, config.challenge_period).then(saveAbi);
     };
 
     if(config.saleAddress && config.saleAddress !== '') {
-        Sale.at(config.saleAddress).then(deploy);
+        try {
+            const tokenContract = await Sale.at(config.saleAddress);
+            return deploy(tokenContract);
+        } catch(e){
+            console.log(e);
+        }
     } else {
         const startTime = Date.now() + 60000;
         deployer.deploy(Sale, startTime, accounts[0]).then(function (){
