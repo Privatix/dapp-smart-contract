@@ -1,4 +1,3 @@
-// 15387feb21221353f149073f2ab8f97076f44c29 
 const fs = require('fs');
 
 const ERC20 = artifacts.require("./ERC20.sol");
