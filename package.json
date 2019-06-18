@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "postinstall": "npm audit fix",
+    "postinstall": "",
     "pretest": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol",
     "test": "ganache-cli > ./ganache.log 2>&1 & truffle test ./test/psc.js --compile-all --network local_geth && sudo kill -9 $(lsof -ti :8545)",
     "rinkeby": "mustache targets/${TARGET}.json contracts/PrivatixServiceContract.sol.mustache > contracts/PrivatixServiceContract.sol && TARGET=${TARGET} truffle migrate --network rinkeby",
@@ -32,7 +32,7 @@
     "moment": "^2.18.1",
     "openzeppelin-solidity": "^2.3.0",
     "truffle-hdwallet-provider": "1.0.10",
-    "web3": "^1.0.0-beta.52",
+    "web3": "^1.0.0-beta.55",
     "xunit-file": "^1.0.0"
   },
   "babel": {
@@ -44,5 +44,9 @@
   "devDependencies": {
     "mocha-junit-reporter": "^1.17.0",
     "mustache": "^2.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Privatix/dapp-smart-contract.git"
   }
 }
