@@ -1,18 +1,5 @@
-// import * as chai from 'chai';
 const config = require(`../targets/${process.env.TARGET}.json`);
-// const chaiAsPromised = require("chai-as-promised");
 
-// chai.use(chaiAsPromised);
-// const {expect, assert: chaiAssert } = chai;
-
-// const mcoloring = require('mocha').reporters.Base.color;
-/*
-const mlog = {log: function(){
-    console.log.apply(this, 
-	    [].map.call(arguments, function(v, k) { return mcoloring('error stack', v); })
-    );
-}};
-*/
 const abi = require('ethereumjs-abi');
 
 const Prix_token = artifacts.require("../contracts/Token.sol");

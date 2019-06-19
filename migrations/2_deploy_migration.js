@@ -24,9 +24,11 @@ function save(abi, name){
 
 module.exports = async function(deployer, network, accounts) {
 
+    const feeAddress = 'FEE_ADDRESS' in process.env ? process.env.FEE_ADDRESS : accounts[0];
+    console.log('deploy with fee address: ', feeAddress);
     const deploy = async function(tokenContract){
         const token = await tokenContract.token();
-        return deployer.deploy(PSC, token, accounts[0], config.popup_period, config.remove_period, config.challenge_period).then(saveAbi);
+        return deployer.deploy(PSC, token, feeAddress, config.popup_period, config.remove_period, config.challenge_period).then(saveAbi);
     };
 
     if(config.saleAddress && config.saleAddress !== '') {
