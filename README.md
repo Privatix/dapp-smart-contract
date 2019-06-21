@@ -43,10 +43,10 @@ Install dependencies:
 npm install
 ```
 
-Install truffle v 4.1.13:
+Install truffle v 5.0.21:
 
 ```bash
-npm install truffle@4.1.13 -g
+npm install truffle@5.0.21 -g
 ```
 
 # Tests
