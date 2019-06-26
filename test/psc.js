@@ -263,8 +263,8 @@ contract('PSC', (accounts) => {
 
         assert.equal((await prix_token.balanceOf(vendor)).toNumber()/1e8, 4, 'balance of vendor must be 4 prix');
         // approve - min_deposit*max_supplies + signed balance - fee
-        assert.equal((await psc.internal_balances(vendor)).toNumber(), 1e8-2e6+100000-570, 'internal balance of vendor must be 4e8-2e6 + 100000-570 ');
-        assert.equal((await psc.internal_balances(owner)).toNumber(), 570, 'internal balance of owner must be 570');
+        assert.equal((await psc.balanceOf(vendor)).toNumber(), 1e8-2e6+100000-570, 'internal balance of vendor must be 4e8-2e6 + 100000-570 ');
+        assert.equal((await psc.balanceOf(owner)).toNumber(), 570, 'internal balance of owner must be 570');
 
         const ret = await psc.returnBalanceERC20(100000-570, {from:vendor});
         gasUsage["psc.returnBalanceERC20"] = ret.receipt.gasUsed;
@@ -546,16 +546,16 @@ contract('PSC', (accounts) => {
         gasUsage["psc.uncooperativeClose"] = uClose.receipt.gasUsed;
 
         await skip(challenge_period);
-        gasUsage['ownerBefore'] = (await psc.internal_balances(owner)).toNumber();
-        gasUsage['vendorBefore'] = (await psc.internal_balances(vendor)).toNumber();
-        gasUsage['clientBefore'] = (await psc.internal_balances(client)).toNumber();
+        gasUsage['ownerBefore'] = (await psc.balanceOf(owner)).toNumber();
+        gasUsage['vendorBefore'] = (await psc.balanceOf(vendor)).toNumber();
+        gasUsage['clientBefore'] = (await psc.balanceOf(client)).toNumber();
 
         const settle = await psc.settle(vendor, channel.receipt.blockNumber, offering_hash, {from:client});
         gasUsage["psc.settle"] = settle.receipt.gasUsed;
 
-        gasUsage['ownerAfter'] = (await psc.internal_balances(owner)).toNumber();
-        gasUsage['vendorAfter'] = (await psc.internal_balances(vendor)).toNumber();
-        gasUsage['clientAfter'] = (await psc.internal_balances(client)).toNumber();
+        gasUsage['ownerAfter'] = (await psc.balanceOf(owner)).toNumber();
+        gasUsage['vendorAfter'] = (await psc.balanceOf(vendor)).toNumber();
+        gasUsage['clientAfter'] = (await psc.balanceOf(client)).toNumber();
 
         const fee = gasUsage['ownerAfter'] - gasUsage['ownerBefore'];
         const vendorBonus = gasUsage['vendorAfter'] - gasUsage['vendorBefore'];
