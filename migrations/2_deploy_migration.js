@@ -2,7 +2,6 @@ const fs = require('fs');
 
 const ERC20 = artifacts.require("./ERC20.sol");
 const ECVerify = artifacts.require("./lib/ECVerify.sol");
-const Ownable = artifacts.require("openzeppelin-solidity/contracts/ownership/Ownable.sol");
 
 const MultiOwners = artifacts.require("MultiOwners.sol");
 

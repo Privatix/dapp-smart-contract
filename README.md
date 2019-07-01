@@ -43,10 +43,10 @@ Install dependencies:
 npm install
 ```
 
-Install truffle v 4.1.13:
+Install truffle v 5.0.21:
 
 ```bash
-npm install truffle@4.1.13 -g
+npm install truffle@5.0.21 -g
 ```
 
 # Tests
@@ -119,6 +119,20 @@ Use `mainnet` script to deploy contract to the mainnet:
 TARGET=mainnet MNEMONIC='your mnemonic' npm run mainnet
 ```
 
+# get contract info
+Use `viewer/main.js` script to get contract info:
+```
+CONTRACT_ADDRESS="0xa95cC92757b18A5A28d6cf43DF476e13EEb0198A" ABI_PATH='./psc.abi' node viewer/main.js
+
+owner: 0xf58E5e4BA1d30ECe58E6aB2c5b65Be9d9239C8f7
+popup_period: 500
+challenge_period: 5000
+remove_period: 100
+network_fee: 3000
+network_fee_address: 0x4641CD1EB2d538e54e8B29d5dc626889EC5b0A77
+channel_deposit_bugbounty_limit: 30000000000
+
+```
 
 # Contributing
 

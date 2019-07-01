@@ -2,11 +2,10 @@ pragma solidity 0.5.8;
 
 import './ERC20.sol';
 import './lib/ECVerify.sol';
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import './lib/SafeMath64.sol';
 
 /// @title Privatix Service Contract.
-contract PrivatixServiceContract is Ownable {
+contract PrivatixServiceContract {
     using SafeMath64 for uint64;
 
     /*
@@ -39,9 +38,9 @@ contract PrivatixServiceContract is Ownable {
 
     ERC20 public token;
 
-    mapping (bytes32 => Channel) public channels;
-    mapping (bytes32 => ClosingRequest) public closing_requests;
-    mapping (address => uint64) public internal_balances;
+    mapping (bytes32 => Channel) private channels;
+    mapping (bytes32 => ClosingRequest) private closing_requests;
+    mapping (address => uint64) private internal_balances;
     mapping(bytes32 => ServiceOffering) private service_offering_s;
 
     // 52 bytes
@@ -50,7 +49,10 @@ contract PrivatixServiceContract is Ownable {
       address agent_address; //bytes20 - Address of Agent.
       uint16 max_supply; // bytes2 - Maximum supply of services according to service offerings.
       uint16 current_supply; // bytes2 - Currently remaining available supply.
-      uint32 update_block_number; //bytes4 - Last block number when service offering was created, popped-up or channel opened. If 0 - offering was removed.
+
+      // bytes4 - Last block number when service offering was created, popped-up or channel opened.
+      // If 0 - offering was removed.
+      uint32 update_block_number;
     }
 
     // 28 bytes
@@ -362,7 +364,12 @@ contract PrivatixServiceContract is Ownable {
         returns(address, uint64, uint16, uint16, uint32)
     {
         ServiceOffering memory offering = service_offering_s[offering_hash];
-        return (offering.agent_address, offering.min_deposit, offering.max_supply, offering.current_supply, offering.update_block_number);
+        return (offering.agent_address,
+                offering.min_deposit,
+                offering.max_supply,
+                offering.current_supply,
+                offering.update_block_number
+        );
         // test U2
     }
 
@@ -383,11 +390,19 @@ contract PrivatixServiceContract is Ownable {
      string calldata _source)
      external
     {
-      require(service_offering_s[_offering_hash].update_block_number == 0); // Service offering not exists, test S2
-      require(_min_deposit.mul(_max_supply) < channel_deposit_bugbounty_limit); //Agent deposit greater than max allowed, test S1
+      // Service offering not exists, test S2
+      require(service_offering_s[_offering_hash].update_block_number == 0);
+
+      //Agent deposit greater than max allowed, test S1
+      require(_min_deposit.mul(_max_supply) < channel_deposit_bugbounty_limit);
       require(_min_deposit > 0); // zero deposit is not allowed, test S3
 
-      service_offering_s[_offering_hash] = ServiceOffering(_min_deposit, msg.sender, _max_supply, _max_supply, uint32(block.number));
+      service_offering_s[_offering_hash] = ServiceOffering(_min_deposit,
+                                                           msg.sender,
+                                                           _max_supply,
+                                                           _max_supply,
+                                                           uint32(block.number)
+                                                          );
 
       // Substitute deposit amount for each offering slot from agent's internal balance
       // Service provider internal balance must be not less then _min_deposit * _max_supply
@@ -409,7 +424,10 @@ contract PrivatixServiceContract is Ownable {
       require(service_offering_s[_offering_hash].update_block_number + remove_period < block.number); // test S15
       // return Agent's deposit back to his internal balance
       internal_balances[msg.sender] = internal_balances[msg.sender].add(
+
+        // it's safe because it was checked in registerServiceOffering
         service_offering_s[_offering_hash].min_deposit * service_offering_s[_offering_hash].max_supply
+
       );
       // this marks offering as deleted
       service_offering_s[_offering_hash].update_block_number = 0;
@@ -434,7 +452,12 @@ contract PrivatixServiceContract is Ownable {
       ServiceOffering memory offering = service_offering_s[_offering_hash];
       service_offering_s[_offering_hash].update_block_number = uint32(block.number);
 
-      emit LogOfferingPopedUp(msg.sender, _offering_hash, offering.min_deposit, offering.current_supply, _source_type, _source); // test E8
+      emit LogOfferingPopedUp(msg.sender,
+                              _offering_hash,
+                              offering.min_deposit,
+                              offering.current_supply,
+                              _source_type, _source
+                             ); // test E8
     }
 
     /// @notice Returns the sender address extracted from the balance proof or closing signature.
@@ -497,20 +520,6 @@ contract PrivatixServiceContract is Ownable {
     }
 
     /*
-     *  Dev tools
-     */
-
-    {{ devTools.throwEventLogChannelCreated }}
-    {{ devTools.throwEventLogChannelToppedUp }}
-    {{ devTools.throwEventLogChannelCloseRequested }}
-    {{ devTools.throwEventLogOfferingCreated }}
-    {{ devTools.throwEventLogOfferingDeleted }}
-    {{ devTools.throwEventLogOfferingEndpoint }}
-    {{ devTools.throwEventLogOfferingPopedUp }}
-    {{ devTools.throwEventLogCooperativeChannelClose }}
-    {{ devTools.throwEventLogUnCooperativeChannelClose }}
-
-    /*
      *  Private functions
      */
 
@@ -520,7 +529,7 @@ contract PrivatixServiceContract is Ownable {
      /// @return True in both case, when Service Offering still active or already deactivated.
      function increaseOfferingSupply(address _agent_address, bytes32 _offering_hash)
       private
-      returns (bool done)
+      returns (bool)
     {
       require(service_offering_s[_offering_hash].current_supply < service_offering_s[_offering_hash].max_supply);
       // Verify that Agent owns this offering
@@ -553,7 +562,11 @@ contract PrivatixServiceContract is Ownable {
     /// @param _agent_address The address of Agent that receives tokens.
     /// @param _offering_hash Service Offering hash that uniquely identifies it.
     /// @param _deposit The amount of tokens that the Client escrows.
-    function createChannelPrivate(address _client_address, address _agent_address, bytes32 _offering_hash, uint64 _deposit) private {
+    function createChannelPrivate(address _client_address,
+                                  address _agent_address,
+                                  bytes32 _offering_hash,
+                                  uint64 _deposit) private {
+
         require(_deposit <= channel_deposit_bugbounty_limit);
 
         uint32 open_block_number = uint32(block.number);
@@ -649,7 +662,7 @@ contract PrivatixServiceContract is Ownable {
     /// @dev Check if a contract exists.
     /// @param _contract The address of the contract to check for.
     /// @return True if a contract exists, false otherwise
-    function addressHasCode(address _contract) internal view returns (bool) {
+    function addressHasCode(address _contract) private view returns (bool) {
         uint size;
         assembly {
             size := extcodesize(_contract)
