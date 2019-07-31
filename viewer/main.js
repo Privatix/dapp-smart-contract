@@ -22,7 +22,6 @@ const props = [
         return ethereum.contract.methods[prop]().call();
     });
     const results = await Promise.all(res);
-    console.log(results);
     props.forEach((prop, i) => console.log(`${prop}: ${results[i]}`));
     if(props.includes('network_fee_address')){
         const index = props.indexOf('network_fee_address');
